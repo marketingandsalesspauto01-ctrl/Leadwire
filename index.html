@@ -2627,9 +2627,11 @@
         // ── Supabase Client ──────────────────────────────────────────────────
         const SUPABASE_URL  = 'https://erktnwukhjqwdyjrsloh.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVya3Rud3VraGpxd2R5anJzbG9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjI3MDAsImV4cCI6MjA5NjczODcwMH0.64VJvZEhIsgFK7kuM4A2uDhNLLAITnQNSMbrbsl-yiw';
-        const supabase = window.supabase
-            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
-            : null;
+        let supabase = null;
+        try {
+            const sb = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+            if (sb && sb.createClient) supabase = sb.createClient(SUPABASE_URL, SUPABASE_ANON);
+        } catch (e) { console.warn('Supabase init failed:', e.message); }
 
         // DB row (snake_case) → JS object (camelCase)
         function dbToJS(r) {
@@ -2699,7 +2701,7 @@
                 const charts = document.querySelectorAll('.chart-wrapper');
                 charts.forEach(c => c.closest('.card').style.display = 'none');
             }
-            handleFilters();
+            renderLeads();
             updateStats();
         });
 
@@ -2760,8 +2762,8 @@
         // Database logic
         async function loadDatabase() {
             if (!supabase) {
-                // Fallback: localStorage
                 _loadFromLocalStorage();
+                filteredLeads = [...leads];
                 return;
             }
             try {
@@ -2776,16 +2778,14 @@
                     leads = data.map(dbToJS);
                 } else {
                     // First run — seed default leads into Supabase
-                    leads = [...defaultLeads];
-                    const rows = leads.map(jsToDb);
-                    const { error: insertError } = await supabase.from('leads').insert(rows);
-                    if (insertError) console.error('Seed error:', insertError.message);
-                    // Re-fetch to get Supabase-assigned IDs
-                    const { data: seeded } = await supabase.from('leads').select('*').order('id');
-                    if (seeded) leads = seeded.map(dbToJS);
+                    const rows = defaultLeads.map(jsToDb);
+                    const { data: seeded, error: insertError } = await supabase
+                        .from('leads').insert(rows).select();
+                    if (insertError) throw insertError;
+                    leads = seeded ? seeded.map(dbToJS) : [...defaultLeads];
                 }
             } catch (e) {
-                console.warn('Supabase load failed, using localStorage:', e.message);
+                console.warn('Supabase unavailable, using localStorage:', e.message);
                 _loadFromLocalStorage();
             }
             filteredLeads = [...leads];
@@ -2794,7 +2794,7 @@
         function _loadFromLocalStorage() {
             const stored = localStorage.getItem('leadwire_crm_v2_database');
             if (stored) {
-                try { leads = JSON.parse(stored); } catch { leads = [...defaultLeads]; }
+                try { leads = JSON.parse(stored); } catch (ex) { leads = [...defaultLeads]; }
             } else {
                 leads = [...defaultLeads];
                 localStorage.setItem('leadwire_crm_v2_database', JSON.stringify(leads));
