@@ -576,6 +576,97 @@
             background-color: var(--bg-card-hover);
         }
 
+        .lead-card.selected {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md), 0 0 0 3px var(--primary-glow);
+            background-color: var(--bg-card-hover);
+        }
+
+        .lead-card .card-checkbox {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: var(--primary);
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* Bulk Action Bar */
+        .bulk-action-bar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: var(--bg-card);
+            border: 1px solid var(--primary);
+            border-radius: 1rem;
+            padding: 0.875rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-md), 0 0 24px var(--primary-glow);
+            backdrop-filter: var(--backdrop-blur);
+            z-index: 9999;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        .bulk-action-bar.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .bulk-count-badge {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+        }
+
+        .bulk-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .btn-odoo-export {
+            background: #714B67;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1.125rem;
+            border-radius: 0.625rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: opacity 0.15s;
+        }
+
+        .btn-odoo-export:hover { opacity: 0.85; }
+
+        .btn-clear-sel {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 0.875rem;
+            border-radius: 0.625rem;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: color 0.15s;
+        }
+
+        .btn-clear-sel:hover { color: var(--danger); border-color: var(--danger); }
+
+        /* Select-all row in table */
+        .th-checkbox { width: 2.5rem; }
+        tr.selected-row td { background: var(--primary-glow); }
+
         .lead-header {
             display: flex;
             justify-content: space-between;
@@ -759,6 +850,35 @@
             transform: none;
         }
         
+        .action-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .action-icon-btn svg { width: 1rem; height: 1rem; }
+        .action-icon-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-glow);
+        }
+        .action-icon-btn.delete {
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.25);
+        }
+        .action-icon-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
         .action-icon-btn.btn-odoo-sync {
             background-color: #714B67;
             color: #ffffff;
@@ -1658,8 +1778,14 @@
                 
                 <!-- View Mode Controls -->
                 <div class="view-controls">
-                    <div class="results-count">
-                        พบ Lead ทั้งหมด <span id="results-number">0</span> รายการ
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <div class="results-count">
+                            พบ Lead ทั้งหมด <span id="results-number">0</span> รายการ
+                        </div>
+                        <label style="display:flex; align-items:center; gap:0.375rem; font-size:0.8125rem; font-weight:600; color:var(--text-muted); cursor:pointer; user-select:none;">
+                            <input type="checkbox" id="select-all-checkbox" style="accent-color:var(--primary); width:1rem; height:1rem;" onchange="toggleSelectAll(this.checked)">
+                            เลือกทั้งหมด
+                        </label>
                     </div>
                     <div class="view-toggles">
                         <button class="view-btn active" id="view-grid" onclick="setViewMode('grid')" title="แสดงผลแบบการ์ด">
@@ -2768,6 +2894,7 @@
             } else {
                 renderTableView();
             }
+            updateSelectionUI();
         }
 
         // Grid View Renderer (Supports Dynamic Grouping)
@@ -2814,6 +2941,7 @@
                     <table class="leads-table">
                         <thead>
                             <tr>
+                                <th class="th-checkbox"></th>
                                 <th>ชื่อบริษัท & ตัวชี้วัด</th>
                                 <th>ภูมิภาค/ที่ตั้ง</th>
                                 <th>สถานะซิงค์ & ช่องทาง</th>
@@ -2860,7 +2988,7 @@
         // HTML elements creators helpers
         function createLeadCardHTML(lead) {
             const card = document.createElement('div');
-            card.className = 'lead-card';
+            card.className = 'lead-card' + (selectedIds.has(lead.id) ? ' selected' : '');
             card.onclick = () => openDetailModal(lead.id);
 
             const certsHTML = (lead.certifications || []).map(cert => {
@@ -2886,6 +3014,10 @@
                    </button>`;
 
             card.innerHTML = `
+                <input type="checkbox" class="card-checkbox" data-id="${lead.id}"
+                    ${selectedIds.has(lead.id) ? 'checked' : ''}
+                    onchange="toggleSelectLead(${lead.id}, this.checked, event)"
+                    onclick="event.stopPropagation()">
                 <div class="lead-header">
                     <div class="lead-title-area">
                         <h3 class="lead-name">${lead.name}</h3>
@@ -2949,6 +3081,8 @@
 
         function createLeadRowHTML(lead) {
             const row = document.createElement('tr');
+            row.dataset.leadId = lead.id;
+            if (selectedIds.has(lead.id)) row.classList.add('selected-row');
             row.onclick = () => openDetailModal(lead.id);
 
             const regionFlag = lead.region === 'thailand' ? '🇹🇭' : '🌐';
@@ -2975,6 +3109,12 @@
                    </button>`;
 
             row.innerHTML = `
+                <td class="th-checkbox" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="row-checkbox" data-id="${lead.id}"
+                        ${selectedIds.has(lead.id) ? 'checked' : ''}
+                        onchange="toggleSelectLead(${lead.id}, this.checked, event)"
+                        style="accent-color:var(--primary); width:1rem; height:1rem; cursor:pointer;">
+                </td>
                 <td>
                     <div class="table-company-name" style="font-weight: 700;">${lead.name}</div>
                     <div style="display: flex; gap: 0.375rem; margin-top: 0.25rem; margin-bottom: 0.25rem; flex-wrap: wrap; align-items: center;">
@@ -3303,6 +3443,182 @@
 
             updateCharts();
         }
+
+        // ── Multi-select & Odoo CSV Export ──────────────────────────────────
+
+        let selectedIds = new Set();
+
+        function toggleSelectLead(id, checked, event) {
+            if (event) event.stopPropagation();
+            if (checked) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+            updateSelectionUI();
+        }
+
+        function toggleSelectAll(checked) {
+            if (checked) {
+                filteredLeads.forEach(l => selectedIds.add(l.id));
+            } else {
+                selectedIds.clear();
+            }
+            updateSelectionUI();
+            rerenderSelectionState();
+        }
+
+        function clearSelection() {
+            selectedIds.clear();
+            const saChk = document.getElementById('select-all-checkbox');
+            if (saChk) saChk.checked = false;
+            updateSelectionUI();
+            rerenderSelectionState();
+        }
+
+        function updateSelectionUI() {
+            const count = selectedIds.size;
+            const bar = document.getElementById('bulk-action-bar');
+            const countEl = document.getElementById('bulk-count');
+            if (bar) {
+                countEl.innerText = count;
+                bar.classList.toggle('visible', count > 0);
+            }
+            // sync select-all checkbox state
+            const saChk = document.getElementById('select-all-checkbox');
+            if (saChk) {
+                saChk.checked = filteredLeads.length > 0 && filteredLeads.every(l => selectedIds.has(l.id));
+                saChk.indeterminate = count > 0 && !saChk.checked;
+            }
+            // update card borders
+            document.querySelectorAll('.lead-card').forEach(card => {
+                const cb = card.querySelector('.card-checkbox');
+                if (cb) {
+                    const id = parseInt(cb.dataset.id);
+                    card.classList.toggle('selected', selectedIds.has(id));
+                    cb.checked = selectedIds.has(id);
+                }
+            });
+            // update table rows
+            document.querySelectorAll('tr[data-lead-id]').forEach(row => {
+                const id = parseInt(row.dataset.leadId);
+                const cb = row.querySelector('.row-checkbox');
+                row.classList.toggle('selected-row', selectedIds.has(id));
+                if (cb) cb.checked = selectedIds.has(id);
+            });
+        }
+
+        function rerenderSelectionState() {
+            // lightweight — just sync checkbox + class without full re-render
+            updateSelectionUI();
+        }
+
+        function exportOdooCSV() {
+            const selected = leads.filter(l => selectedIds.has(l.id));
+            if (selected.length === 0) return;
+
+            const escape = val => {
+                const str = String(val === null || val === undefined ? '' : val);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            };
+
+            const downloadCSV = (content, filename) => {
+                const bom = '﻿';
+                const blob = new Blob([bom + content], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const dateStr = new Date().toISOString().slice(0, 10);
+
+            // ── ไฟล์ 1: Odoo Import Template ────────────────────────────────
+            // คอลัมน์ตรงตาม template Odoo CRM (ภาษาไทย)
+            const headers1 = ['โอกาสการขาย', 'ชื่อผู้ติดต่อ', 'อีเมล', 'โทรศัพท์', 'เมือง', 'รัฐ', 'ประเทศ', 'ทีมขาย', 'แท็ก'];
+
+            const rows1 = selected.map(lead => {
+                const locationParts = (lead.location || '').split(',');
+                const city = locationParts[0] ? locationParts[0].trim() : '';
+                const province = locationParts[1] ? locationParts[1].trim() : '';
+                const country = lead.region === 'thailand' ? 'ประเทศไทย' : 'ต่างประเทศ';
+                // แท็ก = ช่องทางการขาย + กลุ่มอุตสาหกรรม
+                const tags = [getChannelThaiName(lead.channel), getIndustryThaiName(lead.industry)].join(',');
+                return [
+                    lead.name,
+                    lead.contactPerson || '',
+                    lead.email || '',
+                    lead.phone || '',
+                    city,
+                    province,
+                    country,
+                    '',
+                    tags
+                ].map(escape).join(',');
+            });
+
+            downloadCSV([headers1.join(','), ...rows1].join('\r\n'), `odoo_import_leads_${dateStr}.csv`);
+
+            // ── ไฟล์ 2: รายละเอียดสำหรับช่องโน้ต Odoo ────────────────────
+            const headers2 = ['โอกาสการขาย', 'บันทึกรายละเอียดสำหรับ Odoo'];
+
+            const rows2 = selected.map(lead => {
+                const certs = (lead.certifications || []).join(', ') || 'ไม่มี';
+                const sizeText = getCompanySizeText(lead.companySizePoints);
+                const valueText = getAnnualValueText(lead.annualValuePoints);
+                const growthText = getGrowthPotentialText(lead.growthPotentialPoints);
+                const strategicText = getStrategicImportanceText(lead.strategicImportancePoints);
+                const syncStatus = lead.crmSynced ? 'ดึงเข้า Odoo แล้ว' : 'ยังไม่ได้ดึง';
+
+                const note = [
+                    `[ข้อมูลพื้นฐาน]`,
+                    `ชื่อบริษัท: ${lead.name}`,
+                    `ที่ตั้ง: ${lead.location || '-'}`,
+                    `ภูมิภาค: ${lead.region === 'thailand' ? 'ประเทศไทย' : 'ต่างประเทศ'}`,
+                    `กลุ่มอุตสาหกรรม: ${getIndustryThaiName(lead.industry)}`,
+                    `ช่องทางการขาย: ${getChannelThaiName(lead.channel)}`,
+                    `สินค้า/บริการ: ${lead.products || '-'}`,
+                    ``,
+                    `[ผู้ติดต่อประสานงาน]`,
+                    `ชื่อ: ${lead.contactPerson || '-'}`,
+                    `อีเมล: ${lead.email || '-'}`,
+                    `โทรศัพท์: ${lead.phone || '-'}`,
+                    `เว็บไซต์: ${lead.website || '-'}`,
+                    ``,
+                    `[การประเมินคุณภาพ Lead]`,
+                    `คะแนนรวม: ${lead.leadScore || 0}/100 | ระดับ: ${lead.leadLevel || '-'}`,
+                    `มูลค่าคาดการณ์: ฿${(lead.leadValue || 0).toLocaleString('th-TH')}`,
+                    `  - ขนาดบริษัท: ${sizeText} (${lead.companySizePoints || 0}/25 คะแนน)`,
+                    `  - มูลค่าซื้อขายต่อปี: ${valueText} (${lead.annualValuePoints || 0}/35 คะแนน)`,
+                    `  - ศักยภาพการเติบโต: ${growthText} (${lead.growthPotentialPoints || 0}/20 คะแนน)`,
+                    `  - ความสำคัญเชิงกลยุทธ์: ${strategicText} (${lead.strategicImportancePoints || 0}/20 คะแนน)`,
+                    ``,
+                    `[มาตรฐานรับรอง]`,
+                    certs,
+                    ``,
+                    `[สถานะ CRM]`,
+                    syncStatus,
+                    ``,
+                    `[หมายเหตุ]`,
+                    lead.notes || '-'
+                ].join('\n');
+
+                return [lead.name, note].map(escape).join(',');
+            });
+
+            setTimeout(() => {
+                downloadCSV([headers2.join(','), ...rows2].join('\r\n'), `odoo_notes_leads_${dateStr}.csv`);
+            }, 500);
+        }
+
+        // ────────────────────────────────────────────────────────────────────
 
         function updateCharts() {
             if (typeof Chart === 'undefined' || !geoChartInstance || !industryChartInstance) return;
@@ -3831,5 +4147,18 @@
         }
 
     </script>
+
+    <!-- Bulk Action Bar -->
+    <div class="bulk-action-bar" id="bulk-action-bar">
+        <span class="bulk-count-badge" id="bulk-count">0</span>
+        <span class="bulk-label">รายการที่เลือก</span>
+        <button class="btn-odoo-export" onclick="exportOdooCSV()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:1rem;height:1rem;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            ส่งออก CSV สำหรับ Odoo
+        </button>
+        <button class="btn-clear-sel" onclick="clearSelection()">ยกเลิกการเลือก</button>
+    </div>
 </body>
 </html>
