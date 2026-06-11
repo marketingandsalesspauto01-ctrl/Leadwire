@@ -1,0 +1,10 @@
+# Windows artifacts
+Thumbs.db
+Desktop.ini
+
+# Old/backup files
+*.bz2
+index.html.html
+
+# System
+.DS_Store

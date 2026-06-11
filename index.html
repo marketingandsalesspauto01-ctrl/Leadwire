@@ -1,0 +1,3782 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadWire CRM - Wiring Harness Sales Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* CSS Variables & Theme Definitions */
+        :root {
+            --bg-app: #f4f6f9;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-card-hover: rgba(255, 255, 255, 0.98);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-glow: rgba(79, 70, 229, 0.12);
+            
+            --accent: #0d9488;
+            --accent-hover: #0f766e;
+            --accent-glow: rgba(13, 148, 136, 0.12);
+            
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.12);
+            
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.08);
+            --backdrop-blur: blur(16px);
+            
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg-app: #0b0f19;
+            --bg-card: rgba(17, 25, 40, 0.75);
+            --bg-card-hover: rgba(24, 34, 54, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.22);
+            
+            --accent: #14b8a6;
+            --accent-hover: #0d9488;
+            --accent-glow: rgba(20, 184, 166, 0.22);
+            
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 10px 32px rgba(0, 0, 0, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            line-height: 1.5;
+            background-attachment: fixed;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.04) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(20, 184, 166, 0.04) 0px, transparent 50%);
+        }
+
+        .app-container {
+            max-width: 1540px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--backdrop-blur);
+            border-radius: 1.25rem;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-logo svg {
+            width: 2.75rem;
+            height: 2.75rem;
+            color: var(--primary);
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+
+        .logo-text {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.025em;
+        }
+
+        .logo-subtitle {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: -0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        /* Button & Icons Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-card-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-icon-only {
+            padding: 0.625rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon-only:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--backdrop-blur);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .stat-card.accent::after {
+            background: var(--accent);
+        }
+
+        .stat-card.warning::after {
+            background: #f59e0b;
+        }
+
+        .stat-icon {
+            width: 3.25rem;
+            height: 3.25rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-glow);
+            color: var(--primary);
+        }
+
+        .stat-card.accent .stat-icon {
+            background-color: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        .stat-card.warning .stat-icon {
+            background-color: rgba(245, 158, 11, 0.12);
+            color: #f59e0b;
+        }
+
+        .stat-icon svg {
+            width: 1.75rem;
+            height: 1.75rem;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.875rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-top: 0.25rem;
+        }
+
+        .stat-subtext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Workspace Grid Split */
+        .dashboard-body {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* Sidebar filter cards */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--backdrop-blur);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .card-title svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--primary);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Inputs & Form styling */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .form-group label, .select-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-app);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.125rem;
+            height: 1.125rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .clear-search-btn:hover {
+            color: var(--danger);
+        }
+
+        .select-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-app);
+            color: var(--text-main);
+            font-size: 0.875rem;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.125rem;
+        }
+
+        .select-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .chip-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chip {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-app);
+            color: var(--text-muted);
+        }
+
+        .chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .chip.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 180px;
+        }
+
+        /* Main CRM Area */
+        .main-workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .view-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.25rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .results-count {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .results-count span {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .view-toggles {
+            display: flex;
+            gap: 0.375rem;
+            background: var(--bg-app);
+            padding: 0.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .view-btn:hover {
+            color: var(--primary);
+        }
+
+        .view-btn.active {
+            background: var(--bg-card);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .view-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Grouping Section Header style */
+        .group-section-header {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-left: 3px solid var(--primary);
+            padding-left: 0.625rem;
+        }
+
+        .group-badge-count {
+            background: var(--border-color);
+            padding: 0.125rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        /* Lead Cards CRM grid style */
+        .leads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .lead-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .lead-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md), 0 10px 20px var(--primary-glow);
+            background-color: var(--bg-card-hover);
+        }
+
+        .lead-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+
+        .lead-title-area {
+            max-width: 75%;
+        }
+
+        .lead-name {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text-main);
+            word-wrap: break-word;
+        }
+
+        /* CRM Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.675rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-hot {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-warm {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-cold {
+            background: rgba(100, 116, 139, 0.1);
+            color: #64748b;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+
+        .status-synced {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        /* Score & Value Badges */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+        .score-badge.high {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .score-badge.mid {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        .score-badge.low {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .score-dot {
+            width: 0.375rem;
+            height: 0.375rem;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+        .level-badge.level-s {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
+            color: #f59e0b;
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.2);
+        }
+        .level-badge.level-a {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .level-badge.level-b {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        .level-badge.level-c {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        .level-badge.level-d {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+            border-color: rgba(107, 114, 128, 0.2);
+        }
+
+        .value-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background-color: rgba(99, 102, 241, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .value-badge-table {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background-color: rgba(99, 102, 241, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        /* Odoo Sync Branded Buttons */
+        .contact-btn.btn-odoo-sync {
+            width: auto;
+            padding: 0 0.75rem;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background-color: #714B67;
+            color: #ffffff;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .contact-btn.btn-odoo-sync:hover {
+            background-color: #5c3b53;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .contact-btn.btn-odoo-sync.synced {
+            background-color: rgba(16, 185, 129, 0.08);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            cursor: default;
+            pointer-events: none;
+            transform: none;
+        }
+        
+        .action-icon-btn.btn-odoo-sync {
+            background-color: #714B67;
+            color: #ffffff;
+            border: none;
+        }
+        .action-icon-btn.btn-odoo-sync:hover {
+            background-color: #5c3b53;
+            color: #ffffff;
+        }
+        .action-icon-btn.btn-odoo-sync.synced {
+            background-color: rgba(16, 185, 129, 0.08);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .sales-stage-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.675rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-right: 0.375rem;
+        }
+
+        .stage-lead { background: rgba(148, 163, 184, 0.12); color: #64748b; border: 1px solid rgba(148, 163, 184, 0.2); }
+        .stage-contacted { background: rgba(99, 102, 241, 0.12); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.2); }
+        .stage-meeting { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .stage-proposal { background: rgba(236, 72, 153, 0.12); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.2); }
+        .stage-negotiation { background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .stage-won { background: rgba(16, 185, 129, 0.12); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .stage-lost { background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .lead-score-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 800;
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            margin-right: 0.375rem;
+            color: var(--primary);
+        }
+
+        .lead-contact-person {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .lead-location {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            font-size: 0.675rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .tag.tag-cert-glow {
+            background: rgba(20, 184, 166, 0.08);
+            color: var(--accent);
+            border: 1px solid rgba(20, 184, 166, 0.25);
+        }
+
+        .lead-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+
+        .lead-actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 0.75rem;
+            margin-top: auto;
+        }
+
+        .contact-quick-btns {
+            display: flex;
+            gap: 0.375rem;
+        }
+
+        .contact-btn {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .contact-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background-color: var(--primary-glow);
+        }
+
+        .contact-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .btn-email-icon {
+            color: var(--accent);
+        }
+        .btn-email-icon:hover {
+            color: #ffffff !important;
+            background-color: var(--accent) !important;
+            border-color: var(--accent) !important;
+        }
+
+        .btn-sync-done {
+            color: var(--success) !important;
+            border-color: var(--success) !important;
+            background-color: var(--success-glow) !important;
+        }
+        .btn-sync-done:hover {
+            color: #ffffff !important;
+            background-color: var(--success) !important;
+            border-color: var(--success) !important;
+        }
+        .btn-sync-pending {
+            color: var(--text-muted) !important;
+        }
+        .btn-sync-pending:hover {
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            background-color: var(--primary-glow) !important;
+        }
+
+        /* Monthly Sales Planner Board Styles */
+        .planner-board {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            align-items: stretch;
+            min-height: 62vh;
+            scrollbar-width: thin;
+        }
+
+        .planner-column {
+            flex: 0 0 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--backdrop-blur);
+            border-radius: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .planner-column.drag-over {
+            border-color: var(--primary);
+            background-color: var(--primary-glow);
+        }
+
+        .planner-column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.9375rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .planner-column-count {
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            padding: 0.125rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .planner-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 350px;
+            padding: 0.25rem;
+        }
+
+        .planner-card {
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.875rem;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .planner-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+        }
+
+        .planner-card.dragging {
+            opacity: 0.45;
+            border-style: dashed;
+            background-color: var(--border-color);
+        }
+
+        .planner-card-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.875rem;
+            line-height: 1.3;
+            color: var(--text-main);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .planner-card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* CRM Table View adjustments */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .leads-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        .leads-table th {
+            font-family: var(--font-display);
+            font-weight: 700;
+            background: var(--bg-app);
+            padding: 1rem 1.25rem;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .leads-table td {
+            padding: 1.125rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .leads-table tbody tr {
+            cursor: pointer;
+        }
+
+        .leads-table tbody tr:hover {
+            background-color: var(--bg-card-hover);
+        }
+
+        /* Modal Overlays & Dialogs */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            width: 92%;
+            max-width: 680px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-md);
+            transform: translateY(20px);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            backdrop-filter: var(--backdrop-blur);
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0.375rem;
+            border-radius: 0.375rem;
+        }
+
+        .modal-close:hover {
+            background-color: var(--border-color);
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        /* Form grids and components */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+
+        .form-grid .full-width {
+            grid-column: span 2;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-app);
+            color: var(--text-main);
+            font-family: var(--font-body);
+        }
+
+        .form-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            outline: none;
+        }
+
+        .modal-footer {
+            padding: 1.25rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: var(--bg-app);
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+        }
+
+        /* Email Generator Layout */
+        .email-preview-container {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            background: var(--bg-app);
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .email-preview-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .email-preview-header div span {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .email-preview-body {
+            padding: 1rem;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            color: var(--text-main);
+            max-height: 250px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        /* Detail Modal styling */
+        .detail-header-section {
+            margin-bottom: 1.25rem;
+        }
+
+        .detail-company-title {
+            font-family: var(--font-display);
+            font-size: 1.625rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-meta-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .detail-section-title {
+            font-family: var(--font-display);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-top: 1.25rem;
+            margin-bottom: 0.375rem;
+        }
+
+        .detail-content {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            background-color: var(--bg-app);
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .detail-contact-box {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 0.875rem;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .contact-item:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-glow);
+        }
+
+        .contact-item svg {
+            width: 1.125rem;
+            height: 1.125rem;
+            color: var(--primary);
+        }
+
+        .copy-tooltip {
+            position: absolute;
+            right: 1rem;
+            font-size: 0.75rem;
+            color: var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            font-weight: 600;
+        }
+
+        .contact-item:hover .copy-tooltip {
+            opacity: 0.7;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+        }
+
+        .empty-state svg {
+            width: 4rem;
+            height: 4rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--success);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--success);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-grid .full-width {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header>
+            <div class="header-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="10" width="10" height="4" rx="1" />
+                    <rect x="12" y="10" width="10" height="4" rx="1" />
+                    <path d="M6 10c0-3 2-5 6-5s6 2 6 5" />
+                    <path d="M6 14c0 3 2 5 6 5s6-2 6-5" />
+                </svg>
+                <div>
+                    <h1 class="logo-text">LeadWire</h1>
+                    <p class="logo-subtitle"> wiring harness lead repository</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportToCSV()" title="ดาวน์โหลดเป็นไฟล์ Excel CSV">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export CSV
+                </button>
+                <button class="btn btn-primary" onclick="openAddLeadModal()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    เพิ่ม Lead ใหม่
+                </button>
+                <button class="btn-icon-only" id="theme-toggle" onclick="toggleTheme()" title="สลับธีม สว่าง/มืด">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="theme-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Lead Stats Grid -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12.75a1.5 1.5 0 0 1 1.5 1.5V21" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Lead ทั้งหมด</span>
+                    <span class="stat-value" id="stat-total">0</span>
+                    <span class="stat-subtext" id="stat-total-sub">บริษัท</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: var(--success-glow); color: var(--success);">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">ดึงเข้า CRM แล้ว</span>
+                    <span class="stat-value" id="stat-won">0</span>
+                    <span class="stat-subtext" id="stat-won-pct">0% ของทั้งหมด</span>
+                </div>
+            </div>
+
+            <div class="stat-card warning" style="border-left: 4px solid #714B67;">
+                <div class="stat-icon" style="background-color: rgba(113, 75, 103, 0.1); color: #714B67;">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">มูลค่า Lead รวม</span>
+                    <span class="stat-value" id="stat-total-value">฿0</span>
+                    <span class="stat-subtext" id="stat-total-value-sub">บาท (มูลค่ารวมคาดการณ์)</span>
+                </div>
+            </div>
+
+            <div class="stat-card accent">
+                <div class="stat-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">อัตราการซิงค์ Lead</span>
+                    <span class="stat-value" id="stat-hot">0%</span>
+                    <span class="stat-subtext" id="stat-hot-pct">0 จาก 0 บริษัท</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Body Layout -->
+        <main class="dashboard-body">
+            
+            <!-- Sidebar: Filters & Grouping & Charts -->
+            <section class="sidebar">
+                
+                <!-- Filter & Grouping Card -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.24 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                        </svg>
+                        ค้นหาและจัดการขาย
+                    </h2>
+                    
+                    <div class="filter-group">
+                        <!-- Search Box -->
+                        <div class="form-group">
+                            <label for="search-input">ค้นหาตามสเปก/ชื่อ/ข้อมูลติดต่อ</label>
+                            <div class="search-box">
+                                <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.602 10.602z" />
+                                </svg>
+                                <input type="text" id="search-input" class="search-input" placeholder="คำค้นหา..." oninput="handleSearch()">
+                                <button class="clear-search-btn" id="clear-search" onclick="clearSearch()" style="display: none;">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Location Chips -->
+                        <div class="form-group">
+                            <label>สถานที่ตั้งโรงงาน</label>
+                            <div class="chip-container">
+                                <div class="chip active" id="chip-all" onclick="filterLocation('all')">ทั้งหมด</div>
+                                <div class="chip" id="chip-thai" onclick="filterLocation('thailand')">ไทย</div>
+                                <div class="chip" id="chip-global" onclick="filterLocation('global')">ต่างประเทศ</div>
+                            </div>
+                        </div>
+
+                        <!-- Grouping Selector -->
+                        <div class="form-group">
+                            <label for="group-by-select">จัดกลุ่มการแสดงผล (Group By)</label>
+                            <select id="group-by-select" class="select-input" onchange="handleFilters()">
+                                <option value="none">ไม่จัดกลุ่ม (แสดงรายการรวม)</option>
+                                <option value="crmSync">สถานะการดึงเข้า CRM</option>
+                                <option value="industry">กลุ่มอุตสาหกรรม (Industry)</option>
+                                <option value="channel">ช่องทางการขาย (Sales Channel)</option>
+                                <option value="leadLevel">ระดับของ Lead (Lead Level)</option>
+                            </select>
+                        </div>
+
+                        <!-- Sorting Selector -->
+                        <div class="form-group">
+                            <label for="sort-by-select">เรียงลำดับข้อมูล (Sort By)</label>
+                            <select id="sort-by-select" class="select-input" onchange="handleFilters()">
+                                <option value="none">เรียงตามลำดับเริ่มต้น</option>
+                                <option value="score-desc">คะแนนคุณภาพ (สูง - ต่ำ)</option>
+                                <option value="value-desc">มูลค่า Lead (สูง - ต่ำ)</option>
+                                <option value="name-asc">ชื่อบริษัท (ก - ฮ / A - Z)</option>
+                            </select>
+                        </div>
+
+                        <!-- Sales Channel Filter -->
+                        <div class="form-group">
+                            <label for="filter-channel">ช่องทางการขาย (Sales Channel)</label>
+                            <select id="filter-channel" class="select-input" onchange="handleFilters()">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="OEM">OEM (ผู้ผลิตสินค้าประกอบ)</option>
+                                <option value="Aftermarket Replacement">Aftermarket Replacement (อะไหล่ทดแทน)</option>
+                                <option value="Aftermarket Upgrade">Aftermarket Upgrade (ของแต่ง/อัปเกรด)</option>
+                                <option value="Repair Shop">Repair Shop (อู่/ร้านซ่อม)</option>
+                                <option value="Online Seller">Online Seller (ร้านขายออนไลน์)</option>
+                            </select>
+                        </div>
+
+                        <!-- Industry Selector -->
+                        <div class="form-group">
+                            <label for="filter-industry">กลุ่มอุตสาหกรรม</label>
+                            <select id="filter-industry" class="select-input" onchange="handleFilters()">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="Automotive">ยานยนต์ (Automotive)</option>
+                                <option value="SPV">ยานพาหนะพิเศษ (SPV)</option>
+                                <option value="Home Appliance">เครื่องใช้ไฟฟ้า (Home Appliance)</option>
+                                <option value="Industrial">อุตสาหกรรม (Industrial)</option>
+                                <option value="Agricultural Machinery">เครื่องจักรเกษตร (Agricultural Machinery)</option>
+                            </select>
+                        </div>
+
+                        <!-- CRM Sync Status Filter -->
+                        <div class="form-group">
+                            <label for="filter-crm-sync">สถานะการดึงเข้า CRM</label>
+                            <select id="filter-crm-sync" class="select-input" onchange="handleFilters()">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="synced">ดึงเข้า CRM แล้ว (Synced)</option>
+                                <option value="pending">ยังไม่ได้ดึงเข้า CRM (Pending)</option>
+                            </select>
+                        </div>
+
+                        <!-- Lead Level Filter -->
+                        <div class="form-group">
+                            <label for="filter-lead-level">ระดับของ Lead (Lead Level)</label>
+                            <select id="filter-lead-level" class="select-input" onchange="handleFilters()">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="S">S (Strategic)</option>
+                                <option value="A">A (High Value)</option>
+                                <option value="B">B (Growth)</option>
+                                <option value="C">C (Standard)</option>
+                                <option value="D">D (Low Potential)</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="resetAllFilters()" style="margin-top: 0.5rem; justify-content: center;">
+                            ล้างตัวคัดกรองทั้งหมด
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chart Card 1 -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+                        </svg>
+                        สัดส่วนช่องทางการขาย
+                    </h2>
+                    <div class="chart-wrapper">
+                        <canvas id="geoChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart Card 2 (Industry Distribution) -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v16.5M21 19.5H3.75M6.75 15h.75m-.75-3h.75m-.75-3h.75m3 6h.75m-.75-3h.75m-.75-3h.75" />
+                        </svg>
+                        กลุ่มอุตสาหกรรม
+                    </h2>
+                    <div class="chart-wrapper">
+                        <canvas id="industryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Database Utilities -->
+                <div style="text-align: center;">
+                    <a href="#" onclick="resetToDefaultData(); return false;" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none;">
+                        🔄 รีเซ็ตข้อมูลดีลเริ่มต้น (20 Lead)
+                    </a>
+                </div>
+            </section>
+
+            <!-- Main CRM Panel -->
+            <section class="main-workspace">
+                
+                <!-- View Mode Controls -->
+                <div class="view-controls">
+                    <div class="results-count">
+                        พบ Lead ทั้งหมด <span id="results-number">0</span> รายการ
+                    </div>
+                    <div class="view-toggles">
+                        <button class="view-btn active" id="view-grid" onclick="setViewMode('grid')" title="แสดงผลแบบการ์ด">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                            </svg>
+                            รายการการ์ด
+                        </button>
+                        <button class="view-btn" id="view-table" onclick="setViewMode('table')" title="แสดงผลแบบตาราง">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.007 8.25H3.75v-.008h.008V15Zm0 2.25H3.75v-.008h.008v.008Zm0-11.25H3.75v-.008h.008V6Zm0 6H3.75v-.008h.008V12Z" />
+                            </svg>
+                            ตารางรายละเอียด
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid View & Table View Dynamic Workspace -->
+                <div id="default-workspace-view">
+                    <div id="leads-render-area"></div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.008 1.24l.885 1.77a2.25 2.25 0 0 0 2.007 1.24h1.98a2.25 2.25 0 0 0 2.007-1.24l.885-1.77a2.25 2.25 0 0 1 2.007-1.24h3.86m-18 0h18a2.25 2.25 0 0 0 2.25-2.25V5.25A2.25 2.25 0 0 0 19.5 3h-15A2.25 2.25 0 0 0 2.25 5.25v6a2.25 2.25 0 0 0 2.25 2.25Z" />
+                    </svg>
+                    <h3>ไม่พบรายการข้อมูล Lead ที่ตรงตัวกรอง</h3>
+                    <p>กรุณาลองปรับการคัดกรอง หรือกดปุ่มด้านล่างเพื่อรีเซ็ตตัวกรองทั้งหมด</p>
+                    <button class="btn btn-primary" onclick="resetAllFilters()">ล้างตัวคัดกรองทั้งหมด</button>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- FORM ADD / EDIT MODAL DIALOG -->
+    <div class="modal-overlay" id="lead-form-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="form-modal-title">เพิ่มข้อมูล Lead ใหม่</h3>
+                <button class="modal-close" onclick="closeFormModal()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="lead-form" onsubmit="saveLeadForm(event)">
+                    <input type="hidden" id="form-lead-id">
+                    
+                    <div class="form-grid">
+                        <!-- Name -->
+                        <div class="form-group full-width">
+                            <label for="form-name">ชื่อบริษัท (Company Name) *</label>
+                            <input type="text" id="form-name" class="form-input" required placeholder="เช่น Thai-Yazaki Electric Wire Co., Ltd.">
+                        </div>
+
+                        <!-- Location Description -->
+                        <div class="form-group full-width">
+                            <label for="form-location">ที่อยู่ / พิกัด (Location) *</label>
+                            <input type="text" id="form-location" class="form-input" required placeholder="เช่น ระยอง, ประเทศไทย">
+                        </div>
+
+                        <!-- Region -->
+                        <div class="form-group">
+                            <label for="form-region">ประเภทที่ตั้งภูมิภาค *</label>
+                            <select id="form-region" class="select-input" required onchange="triggerFormAutofill()">
+                                <option value="thailand">ประเทศไทย (Thailand)</option>
+                                <option value="global">ต่างประเทศ (Global)</option>
+                            </select>
+                        </div>
+
+                        <!-- Industry Category -->
+                        <div class="form-group">
+                            <label for="form-industry">อุตสาหกรรมหลัก *</label>
+                            <select id="form-industry" class="select-input" required onchange="triggerFormAutofill()">
+                                <option value="Automotive">ยานยนต์ (Automotive)</option>
+                                <option value="SPV">ยานพาหนะพิเศษ (SPV)</option>
+                                <option value="Home Appliance">เครื่องใช้ไฟฟ้า (Home Appliance)</option>
+                                <option value="Industrial">อุตสาหกรรม (Industrial)</option>
+                                <option value="Agricultural Machinery">เครื่องจักรเกษตร (Agricultural Machinery)</option>
+                            </select>
+                        </div>
+
+                        <!-- Sales Channel -->
+                        <div class="form-group">
+                            <label for="form-channel">ช่องทางการขาย (Sales Channel) *</label>
+                            <select id="form-channel" class="select-input" required onchange="triggerFormAutofill()">
+                                <option value="OEM">OEM (ผู้ผลิตสินค้าประกอบ)</option>
+                                <option value="Aftermarket Replacement">Aftermarket Replacement (อะไหล่ทดแทน)</option>
+                                <option value="Aftermarket Upgrade">Aftermarket Upgrade (ของแต่ง/อัปเกรด)</option>
+                                <option value="Repair Shop">Repair Shop (อู่/ร้านซ่อม)</option>
+                                <option value="Online Seller">Online Seller (ร้านขายออนไลน์)</option>
+                            </select>
+                        </div>
+
+                        <!-- Contact Person -->
+                        <div class="form-group">
+                            <label for="form-contact-person">ชื่อบุคคลผู้ติดต่อ (Contact Person)</label>
+                            <input type="text" id="form-contact-person" class="form-input" placeholder="เช่น คุณสมศักดิ์ (ฝ่ายจัดซื้อ)">
+                        </div>
+
+                        <!-- Key Products -->
+                        <div class="form-group full-width">
+                            <label for="form-products">ผลิตภัณฑ์/บริการหลัก *</label>
+                            <input type="text" id="form-products" class="form-input" required placeholder="เช่น ชุดสายไฟรถยนต์, สายไฟคอนเนกเตอร์">
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div class="form-group">
+                            <label for="form-email">อีเมลติดต่อ</label>
+                            <input type="email" id="form-email" class="form-input" placeholder="sales@company.com">
+                        </div>
+
+                        <!-- Contact Phone -->
+                        <div class="form-group">
+                            <label for="form-phone">เบอร์โทรศัพท์</label>
+                            <input type="text" id="form-phone" class="form-input" placeholder="02-XXX-XXXX">
+                        </div>
+
+                        <!-- Website URL -->
+                        <div class="form-group">
+                            <label for="form-website">เว็บไซต์ (Website)</label>
+                            <input type="text" id="form-website" class="form-input" placeholder="http://www.website.com">
+                        </div>
+
+                        <!-- CRM Sync Status -->
+                        <div class="form-group full-width" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0;">
+                            <input type="checkbox" id="form-crm-synced" style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                            <label for="form-crm-synced" style="font-size: 0.875rem; font-weight: 600; color: var(--text-main); text-transform: none; letter-spacing: normal; cursor: pointer; margin-bottom: 0;">
+                                ดึงข้อมูลไปใช้ใน CRM ของฉันแล้ว (Synced to CRM)
+                            </label>
+                        </div>
+
+                        <!-- 4 Point Sub-metrics -->
+                        <div class="form-group">
+                            <label for="form-company-size">1. ขนาดบริษัท (25 คะแนน)</label>
+                            <select id="form-company-size" class="select-input" onchange="triggerFormAutofill()">
+                                <option value="25">OEM / บริษัทข้ามชาติ (25 คะแนน)</option>
+                                <option value="20">บริษัทมหาชน / โรงงานใหญ่ (20 คะแนน)</option>
+                                <option value="15">โรงงานขนาดกลาง (15 คะแนน)</option>
+                                <option value="10" selected>SME (10 คะแนน)</option>
+                                <option value="5">รายเล็ก (5 คะแนน)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-annual-value-pts">2. มูลค่าซื้อขายต่อปี (35 คะแนน)</label>
+                            <select id="form-annual-value-pts" class="select-input" onchange="triggerFormAutofill()">
+                                <option value="35">10 ล้านบาทขึ้นไป (35 คะแนน)</option>
+                                <option value="25">5 - 10 ล้านบาท (25 คะแนน)</option>
+                                <option value="15">1 - 5 ล้านบาท (15 คะแนน)</option>
+                                <option value="10">0.5 - 1 ล้านบาท (10 คะแนน)</option>
+                                <option value="5" selected>&lt; 0.5 ล้านบาท (5 คะแนน)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-growth-potential">3. ศักยภาพการเติบโต (20 คะแนน)</label>
+                            <select id="form-growth-potential" class="select-input" onchange="triggerFormAutofill()">
+                                <option value="20">ขยายธุรกิจต่อเนื่อง (20 คะแนน)</option>
+                                <option value="15">มีแผนลงทุนใหม่ (15 คะแนน)</option>
+                                <option value="10" selected>ธุรกิจคงที่ (10 คะแนน)</option>
+                                <option value="5">แนวโน้มลดลง (5 คะแนน)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-strategic-importance">4. ความสำคัญเชิงกลยุทธ์ (20 คะแนน)</label>
+                            <select id="form-strategic-importance" class="select-input" onchange="triggerFormAutofill()">
+                                <option value="20">เป็นลูกค้าอ้างอิงได้ / เปิดตลาดใหม่ได้ (20 คะแนน)</option>
+                                <option value="15">เป็นผู้นำในอุตสาหกรรม (15 คะแนน)</option>
+                                <option value="10" selected>ลูกค้าทั่วไป (10 คะแนน)</option>
+                                <option value="5">ไม่มีผลเชิงกลยุทธ์ (5 คะแนน)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width" style="margin-top: 0.5rem; margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center; background: var(--bg-app); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px dashed var(--border-color);">
+                            <div>
+                                <span style="font-size: 0.8125rem; font-weight: 600; color: var(--text-muted);">คะแนนรวมคำนวณได้:</span>
+                                <span id="form-score-preview" style="font-size: 1.125rem; font-weight: 700; color: var(--primary); margin-left: 0.25rem;">35</span>
+                                <span style="font-size: 0.8125rem; color: var(--text-muted);">/100 คะแนน</span>
+                            </div>
+                            <div style="height: 16px; width: 1px; background: var(--border-color);"></div>
+                            <div>
+                                <span style="font-size: 0.8125rem; font-weight: 600; color: var(--text-muted);">ระดับของ Lead:</span>
+                                <span id="form-level-preview" style="font-size: 0.875rem; font-weight: 700; color: #f59e0b; margin-left: 0.25rem; background: rgba(245, 158, 11, 0.1); padding: 0.125rem 0.5rem; border-radius: 9999px;">C (Standard)</span>
+                            </div>
+                            <input type="hidden" id="form-score" value="35">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-value">มูลค่าดีลรายปีคาดการณ์ (บาท)</label>
+                            <input type="number" id="form-value" class="form-input" min="0" placeholder="ป้อนมูลค่าระบุในสัญญา..." value="300000">
+                        </div>
+
+                        <!-- Certifications (Comma-separated) -->
+                        <div class="form-group full-width">
+                            <label for="form-certs">มาตรฐานการรับรอง (แยกด้วยจุลภาค ,)</label>
+                            <input type="text" id="form-certs" class="form-input" placeholder="เช่น IATF 16949, ISO 9001" oninput="triggerFormAutofill()">
+                        </div>
+
+                        <!-- Notes/Details -->
+                        <div class="form-group full-width">
+                            <label for="form-notes">ข้อมูลเชิงลึก / รายละเอียดเพิ่มเติม</label>
+                            <textarea id="form-notes" class="form-textarea" placeholder="เช่น จุดเด่นวิศวกรรม, ปริมาณใช้งานต่อเดือน, สเปกสายไฟพิเศษ..."></textarea>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeFormModal()">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary">บันทึกข้อมูลดีล</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL VIEW DIALOG MODAL -->
+    <div class="modal-overlay" id="lead-detail-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">รายละเอียดข้อมูลบริษัท</h3>
+                <button class="modal-close" onclick="closeDetailModal()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="detail-modal-body">
+                <!-- Content injected dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDetailModal()">ปิดหน้าต่าง</button>
+                <button class="btn btn-primary" id="btn-edit-from-detail">แก้ไขข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLD EMAIL GENERATOR MODAL -->
+    <div class="modal-overlay" id="cold-email-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">✉️ Cold Email Assistant</h3>
+                <button class="modal-close" onclick="closeEmailModal()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="email-template-select">เลือกรูปแบบเทมเพลตอีเมลเสนอขาย (Template)</label>
+                        <select id="email-template-select" class="select-input" onchange="generateEmailPreview()">
+                            <option value="intro">1. เมลแนะนำบริการผลิตชุดสายไฟ (Introduction Pitch)</option>
+                            <option value="saving">2. เมลเสนอลดต้นทุนสายไฟประกอบ (Cost-Savings Pitch)</option>
+                            <option value="sample">3. เมลขอนัดเสนอตัวอย่างงานทดสอบเทคนิค (Technical/Sample Request)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email-sales-name">ชื่อผู้ขาย / ผู้ติดต่อเสนอขาย (Sales Name)</label>
+                        <input type="text" id="email-sales-name" class="form-input" value="สมชาย ใจดี" oninput="generateEmailPreview()">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email-sales-phone">เบอร์โทรศัพท์ผู้ขาย (Sales Phone)</label>
+                        <input type="text" id="email-sales-phone" class="form-input" value="081-234-5678" oninput="generateEmailPreview()">
+                    </div>
+                </div>
+
+                <div class="email-preview-container">
+                    <div class="email-preview-header">
+                        <div>📧 ส่งถึง: <span id="preview-email-to">loading...</span></div>
+                        <div>📁 หัวข้อเมล: <span id="preview-email-subject">loading...</span></div>
+                    </div>
+                    <div class="email-preview-body" id="preview-email-body" contenteditable="true" oninput="handleEditedEmailBody()">
+                        loading body...
+                    </div>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                    💡 คุณสามารถแก้ไขและปรับแต่งเนื้อหาในกล่องจำลองพรีวิวอีเมลด้านบนได้โดยตรงก่อนคัดลอกหรือเปิดโปรแกรมเมล
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEmailModal()">ปิด</button>
+                <button class="btn btn-secondary" style="border-color: var(--accent); color: var(--accent);" onclick="copyEmailBody()">
+                    📋 คัดลอกเนื้อหาเมล
+                </button>
+                <button class="btn btn-primary" onclick="launchEmailClient()">
+                    📧 เปิดโปรแกรมเมล (Outlook/Mail)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Odoo Sync Modal -->
+    <div class="modal-overlay" id="odoo-sync-modal">
+        <div class="modal-container" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color: #714B67; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="width: 20px; height: 20px; color: #714B67;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                    ซิงค์ข้อมูลเข้า Odoo CRM อัตโนมัติ
+                </h3>
+                <button class="modal-close" onclick="closeOdooSyncModal()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem 2rem;">
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="font-weight: 700; font-size: 1.125rem; color: var(--text-main);" id="odoo-sync-company-name">Company Name</div>
+                    <div style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        กำลังเชื่อมโยงข้อมูลดีลและคะแนนคุณภาพเข้ากับระบบ Odoo CRM...
+                    </div>
+                </div>
+                
+                <!-- Progress bar -->
+                <div class="progress-bar-wrapper" style="background: var(--bg-app); height: 8px; border-radius: 9999px; overflow: hidden; margin-bottom: 1.5rem; position: relative; border: 1px solid var(--border-color);">
+                    <div id="odoo-sync-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #714B67, #a27296); transition: width 0.3s ease;"></div>
+                </div>
+
+                <!-- Terminal-like Console logs -->
+                <div class="odoo-console" style="background: #0f172a; border-radius: 0.75rem; padding: 1rem; font-family: 'Courier New', Courier, monospace; font-size: 0.8125rem; color: #38bdf8; height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); line-height: 1.5; text-align: left;">
+                    <div id="odoo-console-logs"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1rem 2rem;">
+                <button class="btn btn-secondary" id="btn-close-odoo-sync" onclick="closeOdooSyncModal()" disabled>กำลังเชื่อมซิงค์...</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Messages -->
+    <div class="toast" id="toast-message">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+        </svg>
+        <span id="toast-text">ข้อความจำลองสำเร็จ!</span>
+    </div>
+
+    <!-- Script Implementation -->
+    <script>
+        // Default 20 Leads database with customized Industries and Channels
+        const defaultLeads = [
+            {
+                id: 1,
+                name: "Thai-Yazaki Electric Wire Co., Ltd.",
+                location: "กรุงเทพฯ, ประเทศไทย (สำนักงานใหญ่)",
+                region: "thailand",
+                industry: "Automotive",
+                channel: "OEM",
+                products: "ชุดสายไฟรถยนต์ (Automotive Wiring Harness), สายไฟฟ้าและเคเบิลต่างๆ",
+                certifications: ["IATF 16949", "ISO 9001", "ISO 14001"],
+                website: "http://www.thaiyazaki.com",
+                email: "smb_marketing@th.yazaki.com",
+                phone: "02-653-2550",
+                notes: "ผู้ผลิตชุดสายไฟและสายไฟรายใหญ่ที่สุดในประเทศไทยและเป็นซัพพลายเออร์หลักของค่ายรถยนต์ญี่ปุ่น",
+                crmSynced: true,
+                contactPerson: "คุณทวีศักดิ์ (ฝ่ายจัดซื้อหลัก)",
+                companySizePoints: 25,
+                annualValuePoints: 35,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 15,
+                leadScore: 95,
+                leadLevel: "S (Strategic)",
+                leadValue: 45000000
+            },
+            {
+                id: 2,
+                name: "Sumitomo Electric Wiring Systems (Thailand) Ltd. (SEWT)",
+                location: "ระยอง, ประเทศไทย",
+                region: "thailand",
+                industry: "Automotive",
+                channel: "OEM",
+                products: "ชุดสายไฟยานยนต์ (Automotive Wire Harness) และชิ้นส่วนอิเล็กทรอนิกส์สำหรับรถยนต์",
+                certifications: ["IATF 16949", "ISO 9001", "ISO 14001"],
+                website: "https://www.sws.co.jp/",
+                email: "info@sewt.co.th",
+                phone: "038-956300",
+                notes: "เครือข่ายของ Sumitomo Wiring Systems Group ประเทศญี่ปุ่น ซึ่งเป็นผู้ผลิตระดับท็อปของโลก",
+                crmSynced: true,
+                contactPerson: "คุณสมบัติ (วิศวกรโรงงาน)",
+                companySizePoints: 25,
+                annualValuePoints: 35,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 15,
+                leadScore: 95,
+                leadLevel: "S (Strategic)",
+                leadValue: 38000000
+            },
+            {
+                id: 3,
+                name: "G.S. Electech (Thailand) Co., Ltd.",
+                location: "ฉะเชิงเทรา, ประเทศไทย",
+                region: "thailand",
+                industry: "SPV",
+                channel: "OEM",
+                products: "ชุดสายไฟระบบรถบรรทุกพิเศษ (Special Purpose Vehicle Wiring Harness)",
+                certifications: ["IATF 16949", "ISO 9001"],
+                website: "http://www.gset.co.th",
+                email: "purchase@gset.co.th",
+                phone: "038-571-331",
+                notes: "รับสั่งผลิตสายไฟและชุดสายไฟตามคำสั่งซื้อ OEM ของรถบรรทุกพิเศษและอุปกรณ์เฉพาะทาง",
+                crmSynced: false,
+                contactPerson: "คุณมานะ (ฝ่ายวางแผน)",
+                companySizePoints: 20,
+                annualValuePoints: 35,
+                growthPotentialPoints: 15,
+                strategicImportancePoints: 20,
+                leadScore: 90,
+                leadLevel: "S (Strategic)",
+                leadValue: 25000000
+            },
+            {
+                id: 4,
+                name: "Sanko Electronics (Thailand) Co., Ltd.",
+                location: "ปราจีนบุรี, ประเทศไทย",
+                region: "thailand",
+                industry: "Agricultural Machinery",
+                channel: "OEM",
+                products: "ชุดสายไฟสำหรับรถแทรกเตอร์และรถเกี่ยวข้าว (Agricultural Harness Assemblies)",
+                certifications: ["ISO 9001", "ISO 14001", "IATF 16949"],
+                website: "https://sankoelec-th.net/",
+                email: "sales@sankoelec-th.net",
+                phone: "037-481-095",
+                notes: "ขยายการผลิตเข้าสู่ชุดสายไฟเครื่องจักรการเกษตรขนาดใหญ่ในพื้นที่ชลบุรี/ปราจีนบุรี",
+                crmSynced: false,
+                contactPerson: "คุณอรพินท์ (จัดซื้อชิ้นส่วน)",
+                companySizePoints: 20,
+                annualValuePoints: 35,
+                growthPotentialPoints: 10,
+                strategicImportancePoints: 10,
+                leadScore: 75,
+                leadLevel: "A (High Value)",
+                leadValue: 12000000
+            },
+            {
+                id: 5,
+                name: "Thai Summit Group (Division Wiring and Electric Components)",
+                location: "สมุทรปราการ, ประเทศไทย",
+                region: "thailand",
+                industry: "Automotive",
+                channel: "OEM",
+                products: "ชุดสายไฟรถยนต์และมอเตอร์ไซค์, ชิ้นส่วนอุปกรณ์ไฟฟ้าและอิเล็กทรอนิกส์ทางยานยนต์",
+                certifications: ["IATF 16949", "ISO 9001", "ISO 14001"],
+                website: "https://www.thaisummit.co.th",
+                email: "info@thaisummit.co.th",
+                phone: "02-325-0300",
+                notes: "บริษัทในเครือไทยซัมมิท ยักษ์ใหญ่ผู้ผลิตชิ้นส่วนยานยนต์ของไทยที่ได้มาตรฐานระดับสากล",
+                crmSynced: true,
+                contactPerson: "คุณสุรศักดิ์ (ผู้ช่วยฝ่ายผลิต)",
+                companySizePoints: 25,
+                annualValuePoints: 35,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 15,
+                leadScore: 95,
+                leadLevel: "S (Strategic)",
+                leadValue: 30000000
+            },
+            {
+                id: 6,
+                name: "Connector Expert Co., Ltd.",
+                location: "ฉะเชิงเทรา, ประเทศไทย",
+                region: "thailand",
+                industry: "Agricultural Machinery",
+                channel: "Repair Shop",
+                products: "สายไฟประกอบสเปกอะไหล่ทดแทนชุดสายไฟรถไถและเครื่องสูบน้ำการเกษตร",
+                certifications: ["ISO 9001"],
+                website: "http://www.connectorexpert.net",
+                email: "sales@thainippongroup.com",
+                phone: "033-590-734",
+                notes: "รับซ่อมและประกอบสายเคเบิลตามตัวอย่างเดิม เหมาะสำหรับอู่ซ่อมเครื่องจักรกลการเกษตร",
+                crmSynced: false,
+                contactPerson: "คุณจิราภรณ์ (ฝ่ายวิศวกรรมเฉพาะทาง)",
+                companySizePoints: 10,
+                annualValuePoints: 5,
+                growthPotentialPoints: 10,
+                strategicImportancePoints: 10,
+                leadScore: 35,
+                leadLevel: "C (Standard)",
+                leadValue: 350000
+            },
+            {
+                id: 7,
+                name: "MSTD Enterprise Co., Ltd.",
+                location: "สมุทรปราการ, ประเทศไทย",
+                region: "thailand",
+                industry: "Home Appliance",
+                channel: "Aftermarket Replacement",
+                products: "สายเคเบิลอะไหล่เครื่องซักผ้าและตู้เย็นสำเร็จรูป (Home Appliance Wiring Parts)",
+                certifications: ["ISO 9001"],
+                website: "http://www.mstd.co.th",
+                email: "mstd@mstd.co.th",
+                phone: "02-701-5520",
+                notes: "มีแผงผลิตอะไหล่สายไฟทดแทนพร้อมขั้วเสียบมาตรฐานสำหรับเครื่องใช้ไฟฟ้าตามบ้านทั่วไป",
+                crmSynced: false,
+                contactPerson: "คุณกฤษดา (เจ้าหน้าที่บริหารโครงการ)",
+                companySizePoints: 15,
+                annualValuePoints: 15,
+                growthPotentialPoints: 15,
+                strategicImportancePoints: 10,
+                leadScore: 55,
+                leadLevel: "B (Growth)",
+                leadValue: 1500000
+            },
+            {
+                id: 8,
+                name: "Chusei (Thailand) Co., Ltd.",
+                location: "สมุทรปราการ, ประเทศไทย",
+                region: "thailand",
+                industry: "Home Appliance",
+                channel: "OEM",
+                products: "ชุดสายไฟประกอบเครื่องปรับอากาศและพัดลมแบรนด์ดังต่างๆ (Home Appliance OEM Harness)",
+                certifications: ["ISO 9001", "ISO 14001"],
+                website: "http://www.chusei.co.th",
+                email: "chusei.thai_ac@chusei.co.th",
+                phone: "02-705-8772",
+                notes: "โรงงานประกอบชุดสายไฟมาตรฐานญี่ปุ่น มีระบบตรวจสอบคุณภาพการทดสอบกระแสไฟฟ้าเชื่อมต่อแบบ 100%",
+                crmSynced: true,
+                contactPerson: "คุณชัญญภัส (ผู้จัดการฝ่ายจัดซื้อ)",
+                companySizePoints: 20,
+                annualValuePoints: 25,
+                growthPotentialPoints: 10,
+                strategicImportancePoints: 10,
+                leadScore: 65,
+                leadLevel: "A (High Value)",
+                leadValue: 8500000
+            },
+            {
+                id: 9,
+                name: "Senshu Electric (Thailand) Co., Ltd.",
+                location: "กรุงเทพฯ, ประเทศไทย",
+                region: "thailand",
+                industry: "SPV",
+                channel: "Repair Shop",
+                products: "ชุดสายไฟทดแทนสำหรับห้องควบคุมรถเครนและรถขุดเจาะ (Crane/Excavator Cable Harness)",
+                certifications: ["ISO 9001", "ISO 14001"],
+                website: "http://www.senshu.co.th",
+                email: "senshu-thai@senshu.co.th",
+                phone: "02-168-3224",
+                notes: "จัดหาสายไฟเกรดอุตสาหกรรมพิเศษที่ทนต่อรังสี UV และน้ำมันไฮดรอลิกสำหรับงานซ่อมบำรุงรถพิเศษ",
+                crmSynced: false,
+                contactPerson: "คุณนพดล (ทีมฝ่ายช่างเทคนิค)",
+                companySizePoints: 10,
+                annualValuePoints: 5,
+                growthPotentialPoints: 10,
+                strategicImportancePoints: 10,
+                leadScore: 35,
+                leadLevel: "C (Standard)",
+                leadValue: 420000
+            },
+            {
+                id: 10,
+                name: "Daiwa Harness (Thailand) Co., Ltd.",
+                location: "ชลบุรี, ประเทศไทย",
+                region: "thailand",
+                industry: "Automotive",
+                channel: "OEM",
+                products: "การประกอบชุดสายไฟระบบไฟหน้าและคอนโซลรถยนต์ OEM (Auto Front/Console Harness)",
+                certifications: ["IATF 16949", "ISO 9001"],
+                website: "http://www.daiwaharness.co.th",
+                email: "info@daiwaharness.co.th",
+                phone: "038-447-457",
+                notes: "เน้นกลุ่มลูกค้าอุตสาหกรรมผลิตชิ้นส่วนยานยนต์ในแถบชลบุรีและระยองด้วยกระบวนการประกอบมาตรฐานญี่ปุ่น",
+                crmSynced: true,
+                contactPerson: "คุณธีรชัย (หัวหน้าฝ่ายคุมคุณภาพ)",
+                companySizePoints: 20,
+                annualValuePoints: 35,
+                growthPotentialPoints: 15,
+                strategicImportancePoints: 15,
+                leadScore: 85,
+                leadLevel: "S (Strategic)",
+                leadValue: 22000000
+            },
+            {
+                id: 11,
+                name: "Sup Circuit Co., Ltd.",
+                location: "สมุทรปราการ, ประเทศไทย",
+                region: "thailand",
+                industry: "Home Appliance",
+                channel: "Online Seller",
+                products: "สายไฟประกอบสวิตช์ DIY และสายปลั๊กไฟอะไหล่แบรนด์ขายผ่านแพลตฟอร์มอีคอมเมิร์ซ",
+                certifications: ["ISO 9001"],
+                website: "http://www.supcircuit.co.th",
+                email: "supcircuit.company@gmail.com",
+                phone: "084-682-8008",
+                notes: "เน้นการแพ็คสินค้าสินค้าสำเร็จรูปและขายปลีกผ่านช่องทางออนไลน์สำหรับกลุ่มผู้บริโภคทั่วไปและช่าง DIY",
+                crmSynced: false,
+                contactPerson: "คุณวรทัต (วิศวกรผู้ออกแบบหลัก)",
+                companySizePoints: 5,
+                annualValuePoints: 5,
+                growthPotentialPoints: 5,
+                strategicImportancePoints: 5,
+                leadScore: 20,
+                leadLevel: "C (Standard)",
+                leadValue: 180000
+            },
+            {
+                id: 12,
+                name: "Leng Power Co., Ltd.",
+                location: "กรุงเทพฯ, ประเทศไทย",
+                region: "thailand",
+                industry: "Agricultural Machinery",
+                channel: "Repair Shop",
+                products: "ชุดสายไฟไดชาร์จและระบบสวิตช์กุญแจรถเกี่ยวข้าวคูโบต้า/ยันม่าร์ (Agri Replacement Wires)",
+                certifications: ["ISO 9001"],
+                website: "http://www.lengpower.co.th",
+                email: "zata@lengpower.co.th",
+                phone: "02-118-2785",
+                notes: "มีแม่แบบสำเร็จรูปสำหรับการผลิตสายไฟซ่อมสำหรับรถแทรกเตอร์ยอดนิยมในตลาดเมืองไทย",
+                crmSynced: false,
+                contactPerson: "คุณวิชาญ (ผู้จัดซื้อสินค้าอุตสาหกรรม)",
+                companySizePoints: 10,
+                annualValuePoints: 5,
+                growthPotentialPoints: 10,
+                strategicImportancePoints: 10,
+                leadScore: 35,
+                leadLevel: "C (Standard)",
+                leadValue: 290000
+            },
+            {
+                id: 13,
+                name: "DT Wiring Systems (Thailand) Co., Ltd.",
+                location: "ชลบุรี, ประเทศไทย",
+                region: "thailand",
+                industry: "Automotive",
+                channel: "OEM",
+                products: "ผลิตและจัดจำหน่ายสายไฟและชุดสายไฟสำหรับอุตสาหกรรมยานยนต์ (Automobile Wiring Harness)",
+                certifications: ["IATF 16949", "ISO 9001"],
+                website: "",
+                email: "contact@dtwiring.co.th",
+                phone: "038-345-200",
+                notes: "โรงงานผลิตชุดสายไฟรถยนต์ขนาดใหญ่ในแถบชลบุรี รองรับงานประกอบ OEM แบบสายการผลิตอุตสาหกรรมหนัก",
+                crmSynced: true,
+                contactPerson: "คุณสุชาติ (ผู้จัดการฝ่ายวิศวกรรม)",
+                companySizePoints: 20,
+                annualValuePoints: 35,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 15,
+                leadScore: 90,
+                leadLevel: "S (Strategic)",
+                leadValue: 28000000
+            },
+            {
+                id: 14,
+                name: "Aptiv PLC (Global Headquarters)",
+                location: "ดับลิน, ไอร์แลนด์ (HQ) & ทรอย, มิชิแกน, สหรัฐฯ (US Operations)",
+                region: "global",
+                industry: "Automotive",
+                channel: "Aftermarket Upgrade",
+                products: "ชุดอัปเกรดระบบเชื่อมต่อสายไฟในรถยนต์และโมดูลแปลงไฟแรงสูงของรถยนต์ไฟฟ้า (EV Upgrade Kits)",
+                certifications: ["IATF 16949", "ISO 9001"],
+                website: "https://www.aptiv.com",
+                email: "sales.na@aptiv.com",
+                phone: "+1 248-447-1500",
+                notes: "จัดหาชุดแปลงและสายไฟฟ้าแต่งเพื่อแปลงพอร์ตชาร์จหรือสายไฟอัปเกรดประสิทธิภาพรถไฟฟ้า",
+                crmSynced: true,
+                contactPerson: "Mr. Alan Smith (Procurement Director)",
+                companySizePoints: 25,
+                annualValuePoints: 15,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 20,
+                leadScore: 80,
+                leadLevel: "S (Strategic)",
+                leadValue: 3200000
+            },
+            {
+                id: 15,
+                name: "Lear Corporation",
+                location: "มิชิแกน, สหรัฐอเมริกา (HQ)",
+                region: "global",
+                industry: "Automotive",
+                channel: "OEM",
+                products: "ระบบจัดการพลังงานและการเชื่อมต่อสัญญาณ (E-Systems), ชุดสายไฟและกล่องควบคุมระบบไฟฟ้า",
+                certifications: ["IATF 16949", "ISO 9001", "ISO 14001"],
+                website: "https://www.lear.com",
+                email: "info@lear.com",
+                phone: "+1 (248) 447-1500",
+                notes: "หนึ่งในบริษัท Fortune 500 ที่เป็นผู้นำด้านระบบส่งจ่ายพลังงานไฟฟ้าและเบาะนั่งรถยนต์ระดับโลก",
+                crmSynced: true,
+                contactPerson: "Ms. Sarah Connor (Sourcing Manager)",
+                companySizePoints: 25,
+                annualValuePoints: 35,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 15,
+                leadScore: 95,
+                leadLevel: "S (Strategic)",
+                leadValue: 45000000
+            },
+            {
+                id: 16,
+                name: "Leoni AG",
+                location: "นูเรมเบิร์ก, ประเทศเยอรมนี (HQ)",
+                region: "global",
+                industry: "Industrial",
+                channel: "Aftermarket Replacement",
+                products: "สายควบคุมหุ่นยนต์และเครื่องทอผ้าอุตสาหกรรมสเปกทดแทน (Industrial Cable Harness)",
+                certifications: ["IATF 16949", "ISO 9001", "ISO 13485"],
+                website: "https://www.leoni.com",
+                email: "info@leoni.com",
+                phone: "+49 911-281-0",
+                notes: "ผู้จัดหาสายเคเบิลทดแทนเพื่อการบำรุงรักษาในเครื่องจักรกลอุตสาหกรรมในทวีปยุโรป",
+                crmSynced: false,
+                contactPerson: "Herr Klaus Schmidt (Europe Purchaser)",
+                companySizePoints: 25,
+                annualValuePoints: 15,
+                growthPotentialPoints: 10,
+                strategicImportancePoints: 10,
+                leadScore: 60,
+                leadLevel: "A (High Value)",
+                leadValue: 1800000
+            },
+            {
+                id: 17,
+                name: "Furukawa Electric Co., Ltd.",
+                location: "โตเกียว, ประเทศญี่ปุ่น (HQ)",
+                region: "global",
+                industry: "Automotive",
+                channel: "OEM",
+                products: "ชุดสายไฟยานยนต์ (Wiring Harnesses), เซนเซอร์ตรวจสอบสภาพแบตเตอรี่, ข้อต่อไฟฟ้าชนิดม้วน",
+                certifications: ["ISO 9001", "IATF 16949"],
+                website: "https://www.furukawa.co.jp/en/",
+                email: "tokyo.sales@furukawa.co.jp",
+                phone: "+81-3-3286-3001",
+                notes: "บริษัทยักษ์ใหญ่ของญี่ปุ่นที่มีความเชี่ยวชาญการผลิตสายเคเบิลและสายไฟสำหรับอุตสาหกรรมโทรคมนาคมและยานยนต์",
+                crmSynced: false,
+                contactPerson: "Mr. Takashi Sato (R&D Lead)",
+                companySizePoints: 25,
+                annualValuePoints: 35,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 15,
+                leadScore: 95,
+                leadLevel: "S (Strategic)",
+                leadValue: 35000000
+            },
+            {
+                id: 18,
+                name: "Fujikura Ltd.",
+                location: "โตเกียว, ประเทศญี่ปุ่น (HQ)",
+                region: "global",
+                industry: "Automotive",
+                channel: "Aftermarket Upgrade",
+                products: "แผ่นวงจร FPC และชุดสายไฟทนทานสูงอัปเกรดระบบพวงมาลัยมัลติฟังก์ชันรถยนต์หรู",
+                certifications: ["ISO 9001", "IATF 16949", "ISO 14001"],
+                website: "https://www.fujikura.co.jp/eng/",
+                email: "global.sales@fujikura.co.jp",
+                phone: "+81-3-5606-1111",
+                notes: "จัดจำหน่ายโมดูลสายไฟชุดแต่งสำหรับตลาดผู้บริโภคระดับพรีเมียมในญี่ปุ่นและทั่วโลก",
+                crmSynced: false,
+                contactPerson: "Mr. Kenji Tanaka (Technical Buyer)",
+                companySizePoints: 25,
+                annualValuePoints: 15,
+                growthPotentialPoints: 15,
+                strategicImportancePoints: 15,
+                leadScore: 70,
+                leadLevel: "A (High Value)",
+                leadValue: 2400000
+            },
+            {
+                id: 19,
+                name: "Draxlmaier Group",
+                location: "วิลส์บิเบิร์ก, ประเทศเยอรมนี (HQ)",
+                region: "global",
+                industry: "Automotive",
+                channel: "Aftermarket Upgrade",
+                products: "ชุดแต่งสายไฟประดับไฟ LED และบรรยากาศรอบห้องโดยสารรถยนต์พรีเมียม (Ambient Lighting Upgrade Kits)",
+                certifications: ["IATF 16949", "ISO 9001"],
+                website: "https://www.draexlmaier.com",
+                email: "info@draexlmaier.com",
+                phone: "+49 8741-47-0",
+                notes: "ผู้ออกแบบสายเคเบิลประดับไฟตกแต่งห้องโดยสารพรีเมียมสำหรับตลาดแต่งรถระดับหรู",
+                crmSynced: true,
+                contactPerson: "Mr. Hans Gruber (Component Engineer)",
+                companySizePoints: 25,
+                annualValuePoints: 15,
+                growthPotentialPoints: 20,
+                strategicImportancePoints: 20,
+                leadScore: 80,
+                leadLevel: "S (Strategic)",
+                leadValue: 2800000
+            },
+            {
+                id: 20,
+                name: "WIRINGO",
+                location: "เหอเป่ย, ประเทศจีน (HQ) & คาวิเต, ฟิลิปปินส์ (โรงงานผลิต)",
+                region: "global",
+                industry: "Industrial",
+                channel: "OEM",
+                products: "ออกแบบต้นแบบและรับจ้างผลิตชุดสายไฟทุกรูปแบบ (Custom Wire Harness & Cable Assembly), Box Build",
+                certifications: ["ISO 9001", "IATF 16949", "ISO 13485"],
+                website: "https://www.wiringo.com",
+                email: "sales@wiringo.com",
+                phone: "+86 (311) 8693-5537",
+                notes: "มีความยืดหยุ่นสูง มีโรงงานในจีนและฟิลิปปินส์ รองรับความต้องการสายเชื่อมต่อเฉพาะทางในอุตสาหกรรมหลากหลาย",
+                crmSynced: false,
+                contactPerson: "Mr. John Chen (Asia Sales Liaison)",
+                companySizePoints: 25,
+                annualValuePoints: 25,
+                growthPotentialPoints: 15,
+                strategicImportancePoints: 20,
+                leadScore: 85,
+                leadLevel: "S (Strategic)",
+                leadValue: 7500000
+            }
+        ];
+
+        // Cold email templates
+        const emailTemplates = {
+            intro: {
+                subject: "ความร่วมมือในการจัดหาและผลิตชุดสายไฟ (Wiring Harness) สำหรับ [Company Name]",
+                body: "เรียน คุณ[Contact Name],\n\nผมได้มีโอกาสศึกษาข้อมูลของ [Company Name] ซึ่งเป็นผู้นำในกลุ่มธุรกิจ [Industry] และพบว่าทางบริษัทของท่านมีความเชี่ยวชาญอย่างมากในส่วนของ [Products]\n\nทางบริษัทของผมเป็นผู้เชี่ยวชาญการผลิตและประกอบชุดสายไฟ (Wiring Harness) สำหรับอุตสาหกรรมในช่องทาง [Channel] โดยเฉพาะ โดยเรามีโรงงานที่ได้รับการรับรองมาตรฐานสากล เช่น IATF 16949 และ ISO 9001 เพื่อควบคุมคุณภาพการเชื่อมต่อกระแสไฟฟ้า 100%\n\nเรายินดีอย่างยิ่งที่จะเสนอตัวเข้าเป็นหนึ่งในซัพพลายเออร์ทางเลือกเพื่อความมั่นคงและยืดหยุ่นในการจัดหาชิ้นส่วนของท่าน หากทางท่านมีแบบร่าง (Drawing) หรือสเปกสายไฟที่กำลังต้องการหาแหล่งผลิตเพิ่ม สามารถส่งข้อมูลให้เราช่วยประเมินราคาเบื้องต้นได้ครับ\n\nสามารถดูข้อมูลบริษัทเพิ่มเติมของเราได้ที่ [Website]\n\nขอแสดงความนับถือ,\n[Sales Name]\nเบอร์โทรศัพท์: [Sales Phone]"
+            },
+            saving: {
+                subject: "ข้อเสนอปรับลดต้นทุนการผลิต/ประกอบชุดสายไฟ (Wiring Harness) ของ [Company Name]",
+                body: "เรียน คุณ[Contact Name],\n\nในสภาวะตลาดปัจจุบัน การบริหารจัดการต้นทุนการจัดหาชิ้นส่วนเป็นปัจจัยสำคัญอย่างยิ่ง ทางเราขออนุญาตนำเสนอทางเลือกในการผลิตชุดสายไฟประกอบสำหรับกลุ่มสินค้า [Products] ของท่าน เพื่อช่วยเพิ่มประสิทธิภาพและลดต้นทุนลงได้ประมาณ 10-15%\n\nจุดเด่นของเราคือ:\n1. การจัดหาวัตถุดิบและคอนเนกเตอร์ในราคาโรงงานผู้ผลิตโดยตรง\n2. เทคโนโลยีประกอบและทดสอบที่ได้มาตรฐานยานยนต์ [Industry]\n3. ความยืดหยุ่นในการสั่งผลิตขั้นต่ำ (Low MOQ) สำหรับงานล็อตพิเศษ\n\nหากท่านมีความสนใจ ทางเรายินดีจัดทำใบเสนอราคาเปรียบเทียบจากประวัติราคาซื้อปัจจุบัน (Cost Comparison) เพื่อให้ท่านพิจารณาความคุ้มค่า\n\nขอแสดงความนับถือ,\n[Sales Name]\nเบอร์โทรศัพท์: [Sales Phone]"
+            },
+            sample: {
+                subject: "ขอนำส่งตัวอย่างทดสอบหรือเข้าพบเพื่อแนะนำโซลูชันชุดสายไฟสำหรับ [Company Name]",
+                body: "เรียน คุณ[Contact Name],\n\nเนื่องจากกลุ่มอุตสาหกรรม [Industry] มีการพัฒนาด้านเทคโนโลยีระบบไฟอย่างต่อเนื่อง ทางเราจึงพัฒนาชุดสายไฟสำหรับสินค้าในกลุ่ม [Products] ให้มีความทนทานและเสถียรภาพสูงสุด\n\nเพื่อเป็นการพิสูจน์คุณภาพก่อนตัดสินใจ ทางเรายินดีจัดทำและจัดส่งชุดตัวอย่างสายไฟประกอบตามสเปกของท่านให้ฝ่ายวิศวกรรมของ [Company Name] ทำการทดสอบทางเทคนิคฟรีโดยไม่มีค่าใช้จ่าย\n\nหรือหากสะดวก ทางผมขออนุญาตเข้าพบเพื่อแนะนำตัวอย่างงานจริงที่โรงงานของท่านประมาณ 15-20 นาทีในสัปดาห์หน้า\n\nรบกวนแจ้งวันเวลาที่ท่านสะดวก หรือแจ้งสเปกตัวอย่างที่ต้องการทดสอบได้เลยครับ\n\nขอแสดงความนับถือ,\n[Sales Name]\nเบอร์โทรศัพท์: [Sales Phone]"
+            }
+        };
+
+        // App States
+        let leads = [];
+        let filteredLeads = [];
+        let viewMode = 'grid'; // 'grid' | 'table'
+        let currentRegionFilter = 'all'; // 'all' | 'thailand' | 'global'
+        let currentSearchQuery = '';
+        let geoChartInstance = null;
+        let industryChartInstance = null;
+
+        // Email draft states
+        let activeLeadForEmail = null;
+        let finalDraftedEmailBody = '';
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDatabase();
+            if (typeof Chart !== 'undefined') {
+                initCharts();
+            } else {
+                console.warn("Chart.js is disabled or offline. Visual charts hidden.");
+                const charts = document.querySelectorAll('.chart-wrapper');
+                charts.forEach(c => c.closest('.card').style.display = 'none');
+            }
+            renderLeads();
+            updateStats();
+        });
+
+        // Helper functions for score breakdown and level determination
+        function getLeadLevel(score) {
+            if (score >= 80) return "S (Strategic)";
+            if (score >= 60) return "A (High Value)";
+            if (score >= 40) return "B (Growth)";
+            if (score >= 20) return "C (Standard)";
+            return "D (Low Potential)";
+        }
+
+        function getCompanySizeText(pts) {
+            if (pts === 25) return "OEM / บริษัทข้ามชาติ";
+            if (pts === 20) return "บริษัทมหาชน / โรงงานใหญ่";
+            if (pts === 15) return "โรงงานขนาดกลาง";
+            if (pts === 10) return "SME";
+            if (pts === 5) return "รายเล็ก";
+            return "ไม่ระบุ";
+        }
+
+        function getAnnualValueText(pts) {
+            if (pts === 35) return "10 ล้านบาทขึ้นไป";
+            if (pts === 25) return "5 - 10 ล้านบาท";
+            if (pts === 15) return "1 - 5 ล้านบาท";
+            if (pts === 10) return "0.5 - 1 ล้านบาท";
+            if (pts === 5) return "< 0.5 ล้านบาท";
+            return "ไม่ระบุ";
+        }
+
+        function getGrowthPotentialText(pts) {
+            if (pts === 20) return "ขยายธุรกิจต่อเนื่อง";
+            if (pts === 15) return "มีแผนลงทุนใหม่";
+            if (pts === 10) return "ธุรกิจคงที่";
+            if (pts === 5) return "แนวโน้มลดลง";
+            return "ไม่ระบุ";
+        }
+
+        function getStrategicImportanceText(pts) {
+            if (pts === 20) return "เป็นลูกค้าอ้างอิงได้ / เปิดตลาดใหม่ได้";
+            if (pts === 15) return "เป็นผู้นำในอุตสาหกรรม";
+            if (pts === 10) return "ลูกค้าทั่วไป";
+            if (pts === 5) return "ไม่มีผลเชิงกลยุทธ์";
+            return "ไม่ระบุ";
+        }
+
+        function getLevelBadgeHTML(level) {
+            if (!level) return '';
+            let levelClass = 'level-d';
+            let cleanLevel = level.split(' ')[0]; // "S", "A", "B", "C", "D"
+            if (cleanLevel === 'S') levelClass = 'level-s';
+            else if (cleanLevel === 'A') levelClass = 'level-a';
+            else if (cleanLevel === 'B') levelClass = 'level-b';
+            else if (cleanLevel === 'C') levelClass = 'level-c';
+            return `<span class="level-badge ${levelClass}">ระดับ ${level}</span>`;
+        }
+
+        // Database logic
+        function loadDatabase() {
+            const stored = localStorage.getItem('leadwire_crm_v2_database');
+            if (stored) {
+                try {
+                    leads = JSON.parse(stored);
+                    
+                    // Migrate data if score/value/level/sub-metrics are missing
+                    let migrated = false;
+                    leads.forEach(l => {
+                        if (l.leadLevel === undefined || l.companySizePoints === undefined) {
+                            const defaultMatch = defaultLeads.find(df => df.id === l.id);
+                            if (defaultMatch) {
+                                l.companySizePoints = defaultMatch.companySizePoints || 10;
+                                l.annualValuePoints = defaultMatch.annualValuePoints || 5;
+                                l.growthPotentialPoints = defaultMatch.growthPotentialPoints || 10;
+                                l.strategicImportancePoints = defaultMatch.strategicImportancePoints || 10;
+                                l.leadScore = defaultMatch.leadScore || 35;
+                                l.leadLevel = defaultMatch.leadLevel || "C (Standard)";
+                                l.leadValue = defaultMatch.leadValue || 300000;
+                            } else {
+                                l.companySizePoints = 10;
+                                l.annualValuePoints = 5;
+                                l.growthPotentialPoints = 10;
+                                l.strategicImportancePoints = 10;
+                                l.leadScore = 35;
+                                l.leadLevel = "C (Standard)";
+                                l.leadValue = 300000;
+                            }
+                            migrated = true;
+                        }
+                    });
+                    if (migrated) saveDatabase();
+                } catch (e) {
+                    leads = [...defaultLeads];
+                }
+            } else {
+                leads = [...defaultLeads];
+                saveDatabase();
+            }
+            filteredLeads = [...leads];
+        }
+
+        // Save database
+        function saveDatabase() {
+            localStorage.setItem('leadwire_crm_v2_database', JSON.stringify(leads));
+        }
+
+        // Reset default data
+        function resetToDefaultData() {
+            if (confirm("คุณต้องการรีเซ็ตข้อมูลกลับไปใช้เริ่มต้น 20 บริษัทที่มีคะแนนและมูลค่าคาดการณ์หรือไม่?")) {
+                leads = [...defaultLeads];
+                saveDatabase();
+                handleFilters();
+                updateStats();
+                showToast("🔄 รีเซ็ตฐานข้อมูลเริ่มต้นสำเร็จแล้ว!");
+            }
+        }
+
+        // View Mode Master Toggles
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.getElementById('view-grid').classList.toggle('active', mode === 'grid');
+            document.getElementById('view-table').classList.toggle('active', mode === 'table');
+            renderLeads();
+        }
+
+        // Location Filter Chips
+        function filterLocation(region) {
+            currentRegionFilter = region;
+            document.getElementById('chip-all').classList.toggle('active', region === 'all');
+            document.getElementById('chip-thai').classList.toggle('active', region === 'thailand');
+            document.getElementById('chip-global').classList.toggle('active', region === 'global');
+            handleFilters();
+        }
+
+        // Search Handlers
+        function handleSearch() {
+            const val = document.getElementById('search-input').value;
+            currentSearchQuery = val.trim().toLowerCase();
+            document.getElementById('clear-search').style.display = val ? 'block' : 'none';
+            handleFilters();
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            currentSearchQuery = '';
+            document.getElementById('clear-search').style.display = 'none';
+            handleFilters();
+        }
+
+        // Master Filter Handler
+        function handleFilters() {
+            const selectedIndustry = document.getElementById('filter-industry').value;
+            const selectedChannel = document.getElementById('filter-channel').value;
+            const selectedCrmSync = document.getElementById('filter-crm-sync').value;
+            const selectedLeadLevel = document.getElementById('filter-lead-level').value;
+
+            filteredLeads = leads.filter(lead => {
+                // 1. Search filter
+                if (currentSearchQuery) {
+                    const matchName = lead.name.toLowerCase().includes(currentSearchQuery);
+                    const matchLoc = lead.location.toLowerCase().includes(currentSearchQuery);
+                    const matchProducts = lead.products.toLowerCase().includes(currentSearchQuery);
+                    const matchContact = (lead.contactPerson || '').toLowerCase().includes(currentSearchQuery) ||
+                                         (lead.email || '').toLowerCase().includes(currentSearchQuery) ||
+                                         (lead.phone || '').toLowerCase().includes(currentSearchQuery);
+                    const matchNotes = (lead.notes || '').toLowerCase().includes(currentSearchQuery);
+                    
+                    if (!matchName && !matchLoc && !matchProducts && !matchContact && !matchNotes) {
+                        return false;
+                    }
+                }
+
+                // 2. Region chip
+                if (currentRegionFilter !== 'all' && lead.region !== currentRegionFilter) {
+                    return false;
+                }
+
+                // 3. Industry
+                if (selectedIndustry !== 'all' && lead.industry !== selectedIndustry) {
+                    return false;
+                }
+
+                // 4. Sales Channel
+                if (selectedChannel !== 'all' && lead.channel !== selectedChannel) {
+                    return false;
+                }
+
+                // 5. CRM Sync Status
+                if (selectedCrmSync !== 'all') {
+                    const isSynced = selectedCrmSync === 'synced';
+                    if (lead.crmSynced !== isSynced) {
+                        return false;
+                    }
+                }
+
+                // 5.1 Lead Level Filter
+                if (selectedLeadLevel !== 'all') {
+                    if (!lead.leadLevel || !lead.leadLevel.startsWith(selectedLeadLevel)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // 6. Sorting
+            const sortBy = document.getElementById('sort-by-select').value;
+            if (sortBy === 'score-desc') {
+                filteredLeads.sort((a, b) => (b.leadScore || 0) - (a.leadScore || 0));
+            } else if (sortBy === 'value-desc') {
+                filteredLeads.sort((a, b) => (b.leadValue || 0) - (a.leadValue || 0));
+            } else if (sortBy === 'name-asc') {
+                filteredLeads.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+            }
+
+            renderLeads();
+            updateCharts();
+        }
+
+        // Reset all filters
+        function resetAllFilters() {
+            document.getElementById('search-input').value = '';
+            currentSearchQuery = '';
+            document.getElementById('clear-search').style.display = 'none';
+            
+            currentRegionFilter = 'all';
+            document.getElementById('chip-all').classList.add('active');
+            document.getElementById('chip-thai').classList.remove('active');
+            document.getElementById('chip-global').classList.remove('active');
+
+            document.getElementById('group-by-select').value = 'none';
+            document.getElementById('sort-by-select').value = 'none';
+            document.getElementById('filter-channel').value = 'all';
+            document.getElementById('filter-industry').value = 'all';
+            document.getElementById('filter-crm-sync').value = 'all';
+            document.getElementById('filter-lead-level').value = 'all';
+            
+            handleFilters();
+        }
+
+        // Render Manager (Decides View)
+        function renderLeads() {
+            const emptyState = document.getElementById('empty-state');
+            document.getElementById('results-number').innerText = filteredLeads.length;
+
+            if (filteredLeads.length === 0) {
+                document.getElementById('leads-render-area').innerHTML = '';
+                emptyState.style.display = 'flex';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            if (viewMode === 'grid') {
+                renderGridView();
+            } else {
+                renderTableView();
+            }
+        }
+
+        // Grid View Renderer (Supports Dynamic Grouping)
+        function renderGridView() {
+            const renderArea = document.getElementById('leads-render-area');
+            const groupBy = document.getElementById('group-by-select').value;
+
+            if (groupBy === 'none') {
+                renderArea.innerHTML = `<div class="leads-grid" id="leads-raw-grid"></div>`;
+                const grid = document.getElementById('leads-raw-grid');
+                filteredLeads.forEach(lead => {
+                    grid.appendChild(createLeadCardHTML(lead));
+                });
+            } else {
+                renderArea.innerHTML = '';
+                const groups = getGroupedData(groupBy);
+                
+                Object.keys(groups).forEach(groupName => {
+                    const groupLeads = groups[groupName];
+                    if (groupLeads.length === 0) return;
+
+                    const sectionHeader = document.createElement('div');
+                    sectionHeader.className = 'group-section-header';
+                    sectionHeader.innerHTML = `<span>${groupName}</span> <span class="group-badge-count">${groupLeads.length}</span>`;
+                    renderArea.appendChild(sectionHeader);
+
+                    const grid = document.createElement('div');
+                    grid.className = 'leads-grid';
+                    groupLeads.forEach(lead => {
+                        grid.appendChild(createLeadCardHTML(lead));
+                    });
+                    renderArea.appendChild(grid);
+                });
+            }
+        }
+
+        // Table View Renderer (Supports Dynamic Grouping)
+        function renderTableView() {
+            const renderArea = document.getElementById('leads-render-area');
+            const groupBy = document.getElementById('group-by-select').value;
+
+            const tableSkeletonHTML = (bodyId) => `
+                <div class="table-responsive" style="margin-bottom: 1.5rem;">
+                    <table class="leads-table">
+                        <thead>
+                            <tr>
+                                <th>ชื่อบริษัท & ตัวชี้วัด</th>
+                                <th>ภูมิภาค/ที่ตั้ง</th>
+                                <th>สถานะซิงค์ & ช่องทาง</th>
+                                <th>อุตสาหกรรม</th>
+                                <th>ข้อมูลผู้ติดต่อ</th>
+                                <th style="text-align: right;">เครื่องมือ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="${bodyId}"></tbody>
+                    </table>
+                </div>
+            `;
+
+            if (groupBy === 'none') {
+                renderArea.innerHTML = tableSkeletonHTML('table-body-raw');
+                const tbody = document.getElementById('table-body-raw');
+                filteredLeads.forEach(lead => {
+                    tbody.appendChild(createLeadRowHTML(lead));
+                });
+            } else {
+                renderArea.innerHTML = '';
+                const groups = getGroupedData(groupBy);
+
+                Object.keys(groups).forEach((groupName, idx) => {
+                    const groupLeads = groups[groupName];
+                    if (groupLeads.length === 0) return;
+
+                    const sectionHeader = document.createElement('div');
+                    sectionHeader.className = 'group-section-header';
+                    sectionHeader.innerHTML = `<span>${groupName}</span> <span class="group-badge-count">${groupLeads.length}</span>`;
+                    renderArea.appendChild(sectionHeader);
+
+                    const bodyId = `table-body-group-${idx}`;
+                    renderArea.innerHTML += tableSkeletonHTML(bodyId);
+                    
+                    const tbody = document.getElementById(bodyId);
+                    groupLeads.forEach(lead => {
+                        tbody.appendChild(createLeadRowHTML(lead));
+                    });
+                });
+            }
+        }
+
+        // HTML elements creators helpers
+        function createLeadCardHTML(lead) {
+            const card = document.createElement('div');
+            card.className = 'lead-card';
+            card.onclick = () => openDetailModal(lead.id);
+
+            const certsHTML = (lead.certifications || []).map(cert => {
+                const isGlow = cert.includes('IATF 16949') || cert.includes('13485');
+                return `<span class="tag ${isGlow ? 'tag-cert-glow' : ''}">${cert}</span>`;
+            }).join('');
+
+            const syncBadge = lead.crmSynced 
+                ? `<span class="status-badge status-synced">ดึงเข้า Odoo แล้ว</span>` 
+                : `<span class="status-badge status-pending">ยังไม่ดึง</span>`;
+
+            const scoreClass = lead.leadScore >= 80 ? 'high' : (lead.leadScore >= 60 ? 'mid' : 'low');
+            const scoreBadge = `<span class="score-badge ${scoreClass}"><span class="score-dot"></span>คะแนน: ${lead.leadScore}/100</span>`;
+            const levelBadge = getLevelBadgeHTML(lead.leadLevel);
+            const valueBadge = `<span class="value-badge">฿${(lead.leadValue || 0).toLocaleString('th-TH')}</span>`;
+
+            const syncBtn = lead.crmSynced
+                ? `<button class="contact-btn btn-odoo-sync synced" onclick="event.stopPropagation();" title="ซิงค์เข้า Odoo CRM แล้ว">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                   </button>`
+                : `<button class="contact-btn btn-odoo-sync" onclick="startOdooSync(event, ${lead.id})" title="ซิงค์อัตโนมัติเข้า Odoo CRM">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                   </button>`;
+
+            card.innerHTML = `
+                <div class="lead-header">
+                    <div class="lead-title-area">
+                        <h3 class="lead-name">${lead.name}</h3>
+                    </div>
+                    ${syncBadge}
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem; margin-bottom: 0.5rem; flex-wrap: wrap; align-items: center;">
+                    ${scoreBadge}
+                    ${levelBadge}
+                    ${valueBadge}
+                </div>
+                <div class="lead-contact-person">
+                    👤 ${lead.contactPerson || 'ไม่ระบุผู้ติดต่อหลัก'}
+                </div>
+                <div class="lead-location">
+                    📍 ${lead.location}
+                </div>
+                <div class="tag-list">
+                    <span class="tag" style="background-color: var(--primary-glow); color: var(--primary); font-weight:700;">${getChannelThaiName(lead.channel)}</span>
+                    <span class="tag">${getIndustryThaiName(lead.industry)}</span>
+                    ${certsHTML}
+                </div>
+                <p class="lead-desc">${lead.notes || 'ไม่มีรายละเอียดเพิ่มเติม'}</p>
+                
+                <div class="lead-actions-row">
+                    <div class="contact-quick-btns">
+                        ${syncBtn}
+                        ${lead.phone ? `
+                            <button class="contact-btn" onclick="copyContact(event, '${lead.phone}', 'คัดลอกเบอร์โทรแล้ว!')" title="คัดลอกเบอร์โทร: ${lead.phone}">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.47-5.112-3.758-6.58-6.58l1.293-.97c.362-.271.527-.733.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v1.75Z"/></svg>
+                            </button>
+                        ` : ''}
+                        ${lead.email ? `
+                            <button class="contact-btn" onclick="copyContact(event, '${lead.email}', 'คัดลอกอีเมลแล้ว!')" title="คัดลอกอีเมล: ${lead.email}">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
+                            </button>
+                        ` : ''}
+                        ${lead.email ? `
+                            <button class="contact-btn btn-email-icon" onclick="openColdEmailModal(event, ${lead.id})" title="แต่ง Cold Email">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                            </button>
+                        ` : ''}
+                        ${lead.website ? `
+                            <a class="contact-btn" href="${lead.website}" target="_blank" onclick="event.stopPropagation();" title="เปิดเว็บไซต์: ${lead.website}">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A11.952 11.952 0 0 1 12 15.75c-2.998 0-5.74-1.1-7.843-2.918m0 0A8.959 8.959 0 0 1 3 12c0-.778.099-1.533.284-2.253"/></svg>
+                            </a>
+                        ` : ''}
+                    </div>
+                    <div class="management-btns">
+                        <button class="action-icon-btn edit" onclick="event.stopPropagation(); editLead(${lead.id})" title="แก้ไขข้อมูล">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                        </button>
+                        <button class="action-icon-btn delete" onclick="event.stopPropagation(); deleteLead(${lead.id})" title="ลบ Lead">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function createLeadRowHTML(lead) {
+            const row = document.createElement('tr');
+            row.onclick = () => openDetailModal(lead.id);
+
+            const regionFlag = lead.region === 'thailand' ? '🇹🇭' : '🌐';
+            const certsHTML = (lead.certifications || []).map(cert => {
+                const isGlow = cert.includes('IATF 16949') || cert.includes('13485');
+                return `<span class="tag ${isGlow ? 'tag-cert-glow' : ''}">${cert}</span>`;
+            }).join(' ');
+
+            const syncBadge = lead.crmSynced 
+                ? `<span class="status-badge status-synced" style="font-size: 10px; padding: 2px 6px;">ซิงค์เข้า Odoo แล้ว</span>` 
+                : `<span class="status-badge status-pending" style="font-size: 10px; padding: 2px 6px;">ยังไม่ซิงค์</span>`;
+
+            const scoreClass = lead.leadScore >= 80 ? 'high' : (lead.leadScore >= 60 ? 'mid' : 'low');
+            const scoreBadge = `<span class="score-badge ${scoreClass}" style="padding: 1px 6px; font-size: 10px;"><span class="score-dot"></span>คะแนน: ${lead.leadScore}</span>`;
+            const levelBadge = getLevelBadgeHTML(lead.leadLevel);
+            const valueBadge = `<span class="value-badge-table">฿${(lead.leadValue || 0).toLocaleString('th-TH')}</span>`;
+
+            const syncBtn = lead.crmSynced
+                ? `<button class="action-icon-btn btn-odoo-sync synced" onclick="event.stopPropagation();" title="ซิงค์เข้า Odoo CRM แล้ว">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                   </button>`
+                : `<button class="action-icon-btn btn-odoo-sync" onclick="startOdooSync(event, ${lead.id})" title="ซิงค์อัตโนมัติเข้า Odoo CRM">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                   </button>`;
+
+            row.innerHTML = `
+                <td>
+                    <div class="table-company-name" style="font-weight: 700;">${lead.name}</div>
+                    <div style="display: flex; gap: 0.375rem; margin-top: 0.25rem; margin-bottom: 0.25rem; flex-wrap: wrap; align-items: center;">
+                        ${scoreBadge}
+                        ${levelBadge}
+                        ${valueBadge}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">${lead.products}</div>
+                </td>
+                <td>
+                    <div>${regionFlag} ${lead.location}</div>
+                </td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                        ${syncBadge}
+                    </div>
+                    <div style="font-size: 0.75rem; color:var(--primary); font-weight:700;">
+                        ช่องทาง: ${getChannelThaiName(lead.channel)}
+                    </div>
+                </td>
+                <td>
+                    <span class="tag" style="background-color: var(--primary-glow); color: var(--primary);">${getIndustryThaiName(lead.industry)}</span>
+                    <div style="margin-top:0.25rem; display:flex; gap:0.25rem; flex-wrap:wrap;">${certsHTML}</div>
+                </td>
+                <td>
+                    <div style="font-size: 0.75rem; font-weight:600; color:var(--text-main);">👤 ${lead.contactPerson || 'ไม่ระบุ'}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                        ${lead.email ? `📧 ${lead.email}` : ''} 
+                        ${lead.phone ? `| 📞 ${lead.phone}` : ''}
+                    </div>
+                </td>
+                <td style="text-align: right;" onclick="event.stopPropagation();">
+                    <div class="management-btns" style="justify-content: flex-end;">
+                        ${syncBtn}
+                        ${lead.email ? `
+                            <button class="action-icon-btn edit" onclick="openColdEmailModal(event, ${lead.id})" title="แต่ง Cold Email">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                            </button>
+                        ` : ''}
+                        <button class="action-icon-btn edit" onclick="editLead(${lead.id})" title="แก้ไขข้อมูล">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                        </button>
+                        <button class="action-icon-btn delete" onclick="deleteLead(${lead.id})" title="ลบ Lead">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                        </button>
+                    </div>
+                </td>
+            `;
+            return row;
+        }
+
+        let activeSyncTimeout = null;
+        function startOdooSync(event, id) {
+            if (event) event.stopPropagation();
+            
+            const lead = leads.find(l => l.id === id);
+            if (!lead) return;
+            
+            // Open modal
+            document.getElementById('odoo-sync-company-name').innerText = lead.name;
+            const consoleLogs = document.getElementById('odoo-console-logs');
+            consoleLogs.innerHTML = '';
+            
+            const progressBar = document.getElementById('odoo-sync-progress-bar');
+            progressBar.style.width = '0%';
+            
+            const closeBtn = document.getElementById('btn-close-odoo-sync');
+            closeBtn.disabled = true;
+            closeBtn.innerText = 'กำลังเชื่อมซิงค์...';
+            
+            document.getElementById('odoo-sync-modal').classList.add('active');
+            
+            // Steps simulation
+            const steps = [
+                { text: `[CONNECT] Connecting to Odoo CRM endpoint at https://odoo.leadwire.com/xmlrpc/2/object...`, progress: 20 },
+                { text: `[AUTH] Authenticating database 'leadwire_db' for user 'sales_rep@leadwire.com'...`, progress: 40 },
+                { text: `[CHECK] Searching for duplicates in model 'crm.lead' for company '${lead.name}'...`, progress: 60 },
+                { text: `[PUSH] Creating new record in 'crm.lead' (Name: '${lead.name}', Expected Revenue: ฿${lead.leadValue.toLocaleString('th-TH')})...`, progress: 85 },
+                { text: `[SUCCESS] Record successfully pushed! Odoo ID: crm.lead(${Math.floor(Math.random()*9000)+1000})`, progress: 100 }
+            ];
+            
+            let currentStep = 0;
+            
+            function runStep() {
+                if (currentStep < steps.length) {
+                    const step = steps[currentStep];
+                    const line = document.createElement('div');
+                    line.style.marginBottom = '0.375rem';
+                    if (step.text.startsWith('[SUCCESS]')) {
+                        line.style.color = '#4ade80';
+                        line.style.fontWeight = 'bold';
+                    } else if (step.text.startsWith('[CONNECT]') || step.text.startsWith('[AUTH]')) {
+                        line.style.color = '#38bdf8';
+                    } else if (step.text.startsWith('[PUSH]')) {
+                        line.style.color = '#c084fc';
+                    } else {
+                        line.style.color = '#94a3b8';
+                    }
+                    line.innerText = step.text;
+                    consoleLogs.appendChild(line);
+                    consoleLogs.scrollTop = consoleLogs.scrollHeight;
+                    
+                    progressBar.style.width = `${step.progress}%`;
+                    currentStep++;
+                    
+                    activeSyncTimeout = setTimeout(runStep, 450);
+                } else {
+                    // Completed!
+                    lead.crmSynced = true;
+                    saveDatabase();
+                    handleFilters();
+                    updateStats();
+                    
+                    closeBtn.disabled = false;
+                    closeBtn.innerText = 'ปิดหน้าต่าง';
+                    
+                    showToast(`🟢 ซิงค์ข้อมูลบริษัท ${lead.name} เข้า Odoo CRM สำเร็จ!`);
+                }
+            }
+            
+            runStep();
+        }
+
+        function closeOdooSyncModal() {
+            if (activeSyncTimeout) {
+                clearTimeout(activeSyncTimeout);
+                activeSyncTimeout = null;
+            }
+            document.getElementById('odoo-sync-modal').classList.remove('active');
+        }
+
+        // Translation and Style Class helpers
+        function getIndustryThaiName(ind) {
+            const industries = {
+                'Automotive': 'ยานยนต์ (Automotive)',
+                'SPV': 'ยานพาหนะพิเศษ (SPV)',
+                'Home Appliance': 'เครื่องใช้ไฟฟ้า (Home Appliance)',
+                'Industrial': 'อุตสาหกรรม (Industrial)',
+                'Agricultural Machinery': 'เครื่องจักรเกษตร (Agricultural Machinery)'
+            };
+            return industries[ind] || ind;
+        }
+
+        // Sales Channel Thai Name translation helper
+        function getChannelThaiName(chan) {
+            const channels = {
+                'OEM': 'OEM',
+                'Aftermarket Replacement': 'อะไหล่ทดแทน (Replacement)',
+                'Aftermarket Upgrade': 'ของแต่ง/อัปเกรด (Upgrade)',
+                'Repair Shop': 'อู่/ร้านซ่อม (Repair Shop)',
+                'Online Seller': 'ขายออนไลน์ (Online Seller)'
+            };
+            return channels[chan] || chan;
+        }
+
+        // Grouping logic handler
+        function getGroupedData(parameter) {
+            const groups = {};
+            
+            if (parameter === 'crmSync') {
+                groups['ดึงเข้า Odoo CRM แล้ว (Synced)'] = [];
+                groups['ยังไม่ซิงค์เข้า Odoo CRM (Pending)'] = [];
+                filteredLeads.forEach(lead => {
+                    const groupKey = lead.crmSynced ? 'ดึงเข้า Odoo CRM แล้ว (Synced)' : 'ยังไม่ซิงค์เข้า Odoo CRM (Pending)';
+                    groups[groupKey].push(lead);
+                });
+            } else if (parameter === 'industry') {
+                const industries = ['Automotive', 'SPV', 'Home Appliance', 'Industrial', 'Agricultural Machinery'];
+                industries.forEach(ind => groups[getIndustryThaiName(ind)] = []);
+                filteredLeads.forEach(lead => {
+                    const indName = getIndustryThaiName(lead.industry);
+                    if (groups[indName]) groups[indName].push(lead);
+                });
+            } else if (parameter === 'channel') {
+                const channels = ['OEM', 'Aftermarket Replacement', 'Aftermarket Upgrade', 'Repair Shop', 'Online Seller'];
+                channels.forEach(chan => groups[getChannelThaiName(chan)] = []);
+                filteredLeads.forEach(lead => {
+                    const chanName = getChannelThaiName(lead.channel);
+                    if (groups[chanName]) groups[chanName].push(lead);
+                });
+            } else if (parameter === 'leadLevel') {
+                const levels = ['S (Strategic)', 'A (High Value)', 'B (Growth)', 'C (Standard)', 'D (Low Potential)'];
+                levels.forEach(lvl => groups[lvl] = []);
+                filteredLeads.forEach(lead => {
+                    const lvlName = lead.leadLevel || 'D (Low Potential)';
+                    if (groups[lvlName]) {
+                        groups[lvlName].push(lead);
+                    } else {
+                        const matched = levels.find(l => l.startsWith(lvlName.split(' ')[0]));
+                        if (matched) groups[matched].push(lead);
+                        else groups['D (Low Potential)'].push(lead);
+                    }
+                });
+            }
+            return groups;
+        }
+
+        // Stats indicators
+        function updateStats() {
+            const total = leads.length;
+            const synced = leads.filter(l => l.crmSynced).length;
+            const syncRate = total > 0 ? Math.round((synced / total) * 100) : 0;
+            const totalValue = leads.reduce((sum, l) => sum + (Number(l.leadValue) || 0), 0);
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-won').innerText = synced;
+            document.getElementById('stat-total-value').innerText = '฿' + totalValue.toLocaleString('th-TH');
+            document.getElementById('stat-hot').innerText = `${syncRate}%`;
+
+            if (total > 0) {
+                document.getElementById('stat-won-pct').innerText = `${Math.round((synced/total)*100)}% ของทั้งหมด`;
+                document.getElementById('stat-total-value-sub').innerText = `จากทั้งหมด ${total} บริษัท`;
+                document.getElementById('stat-hot-pct').innerText = `${synced} จาก ${total} บริษัท`;
+            } else {
+                document.getElementById('stat-won-pct').innerText = '0%';
+                document.getElementById('stat-total-value-sub').innerText = '0 บริษัท';
+                document.getElementById('stat-hot-pct').innerText = '0 จาก 0 บริษัท';
+            }
+        }
+
+        // Chart.js init and updates
+        function initCharts() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            const labelColor = isDark ? '#94a3b8' : '#64748b';
+            const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+            // Chart 1: Sales Channel (Doughnut)
+            const ctxGeo = document.getElementById('geoChart').getContext('2d');
+            geoChartInstance = new Chart(ctxGeo, {
+                type: 'doughnut',
+                data: {
+                    labels: ['OEM', 'อะไหล่ทดแทน', 'ของแต่ง/อัปเกรด', 'อู่/ร้านซ่อม', 'ขายออนไลน์'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'],
+                        borderColor: isDark ? '#111928' : '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: labelColor,
+                                font: { family: 'Inter', size: 10 }
+                            }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+
+            // Chart 2: Industry Distribution (Bar Chart)
+            const ctxIndustry = document.getElementById('industryChart').getContext('2d');
+            industryChartInstance = new Chart(ctxIndustry, {
+                type: 'bar',
+                data: {
+                    labels: ['ยานยนต์', 'ยานพาหนะพิเศษ', 'เครื่องใช้ไฟฟ้า', 'อุตสาหกรรม', 'เครื่องจักรเกษตร'],
+                    datasets: [{
+                        label: 'จำนวนดีลตามกลุ่ม',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: '#6366f1',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: gridColor },
+                            ticks: { 
+                                color: labelColor, 
+                                stepSize: 2,
+                                font: { family: 'Inter', size: 10 }
+                            }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: labelColor,
+                                font: { family: 'Inter', size: 10 }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            updateCharts();
+        }
+
+        function updateCharts() {
+            if (typeof Chart === 'undefined' || !geoChartInstance || !industryChartInstance) return;
+
+            // Update Doughnut (Sales Channel)
+            const channels = ['OEM', 'Aftermarket Replacement', 'Aftermarket Upgrade', 'Repair Shop', 'Online Seller'];
+            const channelCounts = channels.map(c => filteredLeads.filter(l => l.channel === c).length);
+            geoChartInstance.data.datasets[0].data = channelCounts;
+
+            // Update Bar (Industry)
+            const indLabels = ['Automotive', 'SPV', 'Home Appliance', 'Industrial', 'Agricultural Machinery'];
+            const indCounts = indLabels.map(ind => filteredLeads.filter(l => l.industry === ind).length);
+            industryChartInstance.data.datasets[0].data = indCounts;
+
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            geoChartInstance.data.datasets[0].borderColor = isDark ? '#111928' : '#ffffff';
+            
+            geoChartInstance.update();
+            industryChartInstance.update();
+        }
+
+        // Details Modal Manager
+        function openDetailModal(id) {
+            const lead = leads.find(l => l.id === id);
+            if (!lead) return;
+
+            const modalBody = document.getElementById('detail-modal-body');
+            const editBtn = document.getElementById('btn-edit-from-detail');
+            editBtn.onclick = () => { closeDetailModal(); editLead(lead.id); };
+
+            const certsHTML = (lead.certifications || []).map(cert => {
+                const isGlow = cert.includes('IATF 16949') || cert.includes('13485');
+                return `<span class="tag ${isGlow ? 'tag-cert-glow' : ''}">${cert}</span>`;
+            }).join(' ');
+
+            const syncStatusBadge = lead.crmSynced 
+                ? `<span class="status-badge status-synced">ดึงเข้า Odoo CRM แล้ว</span>` 
+                : `<span class="status-badge status-pending">ยังไม่ได้ดึง</span>`;
+
+            const scoreClass = lead.leadScore >= 80 ? 'high' : (lead.leadScore >= 60 ? 'mid' : 'low');
+            const scoreBadgeHTML = `<span class="score-badge ${scoreClass}"><span class="score-dot"></span>คะแนนรวม: ${lead.leadScore}/100</span>`;
+            const levelBadgeHTML = getLevelBadgeHTML(lead.leadLevel);
+            const valueBadgeHTML = `<span class="value-badge">💰 มูลค่าดีล: ฿${(lead.leadValue || 0).toLocaleString('th-TH')}</span>`;
+
+            const odooSyncButtonHTML = lead.crmSynced
+                ? `<button class="btn btn-secondary" style="border-color: #714B67; color: #714B67; padding: 0.5rem 1rem; font-size: 0.8125rem; font-weight: 700; opacity: 0.8; cursor: default;" disabled>
+                    ✓ ซิงค์เข้า Odoo CRM แล้ว
+                   </button>`
+                : `<button class="btn btn-primary" style="background-color: #714B67; border: none; color: white; padding: 0.5rem 1rem; font-size: 0.8125rem; font-weight: 700;" onclick="closeDetailModal(); startOdooSync(event, ${lead.id})">
+                    🔄 ซิงค์อัตโนมัติเข้า Odoo CRM
+                   </button>`;
+
+            modalBody.innerHTML = `
+                <div class="detail-header-section">
+                    <h2 class="detail-company-title">${lead.name}</h2>
+                    <div class="detail-meta-row" style="margin-top: 0.5rem; margin-bottom: 0.75rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        ${syncStatusBadge}
+                        ${scoreBadgeHTML}
+                        ${levelBadgeHTML}
+                        ${valueBadgeHTML}
+                        <span class="tag" style="background-color: var(--primary-glow); color: var(--primary); font-weight:700;">${getChannelThaiName(lead.channel)}</span>
+                        <span class="tag">${getIndustryThaiName(lead.industry)}</span>
+                    </div>
+                    <div style="margin-top: 0.75rem;">
+                        ${odooSyncButtonHTML}
+                    </div>
+                </div>
+
+                <div class="detail-section-title">เกณฑ์คะแนนและระดับคุณภาพของ Lead</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.8125rem;">
+                        <strong>ขนาดบริษัท:</strong> ${getCompanySizeText(lead.companySizePoints)} (${lead.companySizePoints || 0}/25 คะแนน)
+                    </div>
+                    <div style="font-size: 0.8125rem;">
+                        <strong>มูลค่าซื้อขายต่อปี:</strong> ${getAnnualValueText(lead.annualValuePoints)} (${lead.annualValuePoints || 0}/35 คะแนน)
+                    </div>
+                    <div style="font-size: 0.8125rem;">
+                        <strong>ศักยภาพการเติบโต:</strong> ${getGrowthPotentialText(lead.growthPotentialPoints)} (${lead.growthPotentialPoints || 0}/20 คะแนน)
+                    </div>
+                    <div style="font-size: 0.8125rem;">
+                        <strong>ความสำคัญเชิงกลยุทธ์:</strong> ${getStrategicImportanceText(lead.strategicImportancePoints)} (${lead.strategicImportancePoints || 0}/20 คะแนน)
+                    </div>
+                </div>
+
+                <div class="detail-section-title">ผลิตภัณฑ์หลักและชุดสายไฟที่นำเสนอ</div>
+                <div class="detail-content">${lead.products}</div>
+
+                <div class="detail-section-title">มาตรฐานคุณภาพโรงงาน</div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                    ${certsHTML || '<span class="tag">ไม่มีใบรับรองลงทะเบียน</span>'}
+                </div>
+
+                <div class="detail-section-title">หมายเหตุและรายละเอียดเชิงลึกสำหรับ Sales</div>
+                <div class="detail-content" style="font-size: 0.875rem;">${lead.notes || 'ไม่มีหมายเหตุเพิ่มเติม'}</div>
+
+                <div class="detail-section-title">ข้อมูลติดต่อสื่อสาร (คลิกเพื่อคัดลอก)</div>
+                <div class="detail-contact-box">
+                    <div class="contact-item" onclick="copyContactText('${lead.contactPerson || ''}', 'คัดลอกชื่อผู้ติดต่อแล้ว!')">
+                        👤 <span>ผู้ติดต่อประสานงาน: ${lead.contactPerson || 'ไม่ระบุชื่อ'}</span>
+                        <span class="copy-tooltip">คลิกเพื่อคัดลอก</span>
+                    </div>
+                    ${lead.phone ? `
+                        <div class="contact-item" onclick="copyContactText('${lead.phone}', 'คัดลอกเบอร์โทรแล้ว!')">
+                            📞 <span>เบอร์โทร: ${lead.phone}</span>
+                            <span class="copy-tooltip">คลิกเพื่อคัดลอก</span>
+                        </div>
+                    ` : ''}
+                    ${lead.email ? `
+                        <div class="contact-item" onclick="copyContactText('${lead.email}', 'คัดลอกอีเมลแล้ว!')">
+                            📧 <span>อีเมล: ${lead.email}</span>
+                            <span class="copy-tooltip">คลิกเพื่อคัดลอก</span>
+                        </div>
+                    ` : ''}
+                    ${lead.website ? `
+                        <a class="contact-item" href="${lead.website}" target="_blank" onclick="event.stopPropagation();">
+                            🌐 <span>เว็บไซต์: ${lead.website} (เปิดลิงก์)</span>
+                            <span class="copy-tooltip">คลิกเพื่อเปิด</span>
+                        </a>
+                    ` : ''}
+                    <div class="contact-item" onclick="copyContactText('${lead.location}', 'คัดลอกที่อยู่แล้ว!')">
+                        📍 <span>ที่ตั้งโรงงาน: ${lead.location}</span>
+                        <span class="copy-tooltip">คลิกเพื่อคัดลอก</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('lead-detail-modal').classList.add('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('lead-detail-modal').classList.remove('active');
+        }
+
+        // Cold Email Modal Manager
+        function openColdEmailModal(event, id) {
+            if (event) event.stopPropagation();
+
+            const lead = leads.find(l => l.id === id);
+            if (!lead) return;
+
+            activeLeadForEmail = lead;
+            document.getElementById('preview-email-to').innerText = lead.email;
+            
+            generateEmailPreview();
+            
+            document.getElementById('cold-email-modal').classList.add('active');
+        }
+
+        function closeEmailModal() {
+            document.getElementById('cold-email-modal').classList.remove('active');
+            activeLeadForEmail = null;
+        }
+
+        function generateEmailPreview() {
+            if (!activeLeadForEmail) return;
+
+            const templateKey = document.getElementById('email-template-select').value;
+            const salesName = document.getElementById('email-sales-name').value.trim();
+            const salesPhone = document.getElementById('email-sales-phone').value.trim();
+
+            const template = emailTemplates[templateKey];
+            if (!template) return;
+
+            // Substitute dynamic template tags
+            let subject = template.subject
+                .replace(/\[Company Name\]/g, activeLeadForEmail.name)
+                .replace(/\[Channel\]/g, getChannelThaiName(activeLeadForEmail.channel));
+            
+            const contactName = activeLeadForEmail.contactPerson ? activeLeadForEmail.contactPerson.split(' ')[0] : 'ทีมจัดซื้อ/งานจัดหาพาร์ทเนอร์';
+            
+            let body = template.body
+                .replace(/\[Company Name\]/g, activeLeadForEmail.name)
+                .replace(/\[Contact Name\]/g, contactName)
+                .replace(/\[Industry\]/g, getIndustryThaiName(activeLeadForEmail.industry))
+                .replace(/\[Channel\]/g, getChannelThaiName(activeLeadForEmail.channel))
+                .replace(/\[Products\]/g, activeLeadForEmail.products)
+                .replace(/\[Website\]/g, activeLeadForEmail.website || 'www.leadwireharness.com')
+                .replace(/\[Sales Name\]/g, salesName)
+                .replace(/\[Sales Phone\]/g, salesPhone);
+
+            document.getElementById('preview-email-subject').innerText = subject;
+            
+            const bodyPreviewArea = document.getElementById('preview-email-body');
+            bodyPreviewArea.innerText = body;
+            finalDraftedEmailBody = body;
+        }
+
+        function handleEditedEmailBody() {
+            finalDraftedEmailBody = document.getElementById('preview-email-body').innerText;
+        }
+
+        function copyEmailBody() {
+            navigator.clipboard.writeText(finalDraftedEmailBody).then(() => {
+                showToast("📋 คัดลอกเนื้อหาอีเมลลงคลิปบอร์ดแล้ว!");
+            });
+        }
+
+        function launchEmailClient() {
+            if (!activeLeadForEmail) return;
+
+            const to = activeLeadForEmail.email;
+            const subject = document.getElementById('preview-email-subject').innerText;
+            const body = finalDraftedEmailBody;
+
+            const mailtoUrl = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoUrl;
+            showToast("📧 เปิดโปรแกรมเมลเริ่มต้นแล้ว!");
+        }
+
+        // Clipboard operations
+        function copyContact(event, text, msg) {
+            event.stopPropagation();
+            copyContactText(text, msg);
+        }
+
+        function copyContactText(text, msg) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(msg);
+            });
+        }
+
+        // Toast helper
+        function showToast(message) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').innerText = message;
+            toast.classList.add('active');
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 2000);
+        }
+
+        // Form Managers (Add / Edit)
+        function openAddLeadModal() {
+            document.getElementById('lead-form').reset();
+            document.getElementById('form-lead-id').value = '';
+            document.getElementById('form-modal-title').innerText = 'เพิ่มข้อมูล Lead ใหม่';
+            
+            // Populate defaults
+            document.getElementById('form-region').value = 'thailand';
+            document.getElementById('form-industry').value = 'Automotive';
+            document.getElementById('form-channel').value = 'OEM';
+            document.getElementById('form-certs').value = '';
+            
+            // Reset dropdowns for score factors
+            document.getElementById('form-company-size').value = '10';
+            document.getElementById('form-annual-value-pts').value = '5';
+            document.getElementById('form-growth-potential').value = '10';
+            document.getElementById('form-strategic-importance').value = '10';
+
+            triggerFormAutofill();
+            
+            document.getElementById('lead-form-modal').classList.add('active');
+        }
+
+        function editLead(id) {
+            const lead = leads.find(l => l.id === id);
+            if (!lead) return;
+
+            document.getElementById('form-lead-id').value = lead.id;
+            document.getElementById('form-name').value = lead.name;
+            document.getElementById('form-location').value = lead.location;
+            document.getElementById('form-region').value = lead.region;
+            document.getElementById('form-industry').value = lead.industry;
+            document.getElementById('form-channel').value = lead.channel;
+            document.getElementById('form-products').value = lead.products;
+            document.getElementById('form-contact-person').value = lead.contactPerson || '';
+            document.getElementById('form-email').value = lead.email || '';
+            document.getElementById('form-phone').value = lead.phone || '';
+            document.getElementById('form-website').value = lead.website || '';
+            document.getElementById('form-crm-synced').checked = !!lead.crmSynced;
+            
+            // Populate 4 score dropdowns
+            document.getElementById('form-company-size').value = lead.companySizePoints !== undefined ? lead.companySizePoints : '10';
+            document.getElementById('form-annual-value-pts').value = lead.annualValuePoints !== undefined ? lead.annualValuePoints : '5';
+            document.getElementById('form-growth-potential').value = lead.growthPotentialPoints !== undefined ? lead.growthPotentialPoints : '10';
+            document.getElementById('form-strategic-importance').value = lead.strategicImportancePoints !== undefined ? lead.strategicImportancePoints : '10';
+
+            document.getElementById('form-score').value = lead.leadScore !== undefined ? lead.leadScore : '35';
+            document.getElementById('form-value').value = lead.leadValue !== undefined ? lead.leadValue : '300000';
+            
+            document.getElementById('form-score-preview').innerText = lead.leadScore !== undefined ? lead.leadScore : '35';
+            document.getElementById('form-level-preview').innerText = lead.leadLevel !== undefined ? lead.leadLevel : 'C (Standard)';
+            
+            document.getElementById('form-certs').value = (lead.certifications || []).join(', ');
+            document.getElementById('form-notes').value = lead.notes || '';
+
+            document.getElementById('form-modal-title').innerText = 'แก้ไขข้อมูล Lead';
+            document.getElementById('lead-form-modal').classList.add('active');
+        }
+
+        function closeFormModal() {
+            document.getElementById('lead-form-modal').classList.remove('active');
+        }
+
+        function triggerFormAutofill() {
+            const sizePts = parseInt(document.getElementById('form-company-size').value) || 0;
+            const valuePts = parseInt(document.getElementById('form-annual-value-pts').value) || 0;
+            const growthPts = parseInt(document.getElementById('form-growth-potential').value) || 0;
+            const strategicPts = parseInt(document.getElementById('form-strategic-importance').value) || 0;
+            
+            const result = calculateScoreAndValue(sizePts, valuePts, growthPts, strategicPts);
+            
+            document.getElementById('form-score').value = result.score;
+            document.getElementById('form-score-preview').innerText = result.score;
+            document.getElementById('form-level-preview').innerText = result.level;
+
+            // Update color class or style of level preview badge
+            const levelPreview = document.getElementById('form-level-preview');
+            const cleanLevel = result.level.split(' ')[0];
+            if (cleanLevel === 'S') {
+                levelPreview.style.color = '#f59e0b';
+                levelPreview.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)';
+            } else if (cleanLevel === 'A') {
+                levelPreview.style.color = '#10b981';
+                levelPreview.style.background = 'rgba(16, 185, 129, 0.1)';
+            } else if (cleanLevel === 'B') {
+                levelPreview.style.color = '#3b82f6';
+                levelPreview.style.background = 'rgba(59, 130, 246, 0.1)';
+            } else if (cleanLevel === 'C') {
+                levelPreview.style.color = '#f59e0b';
+                levelPreview.style.background = 'rgba(245, 158, 11, 0.1)';
+            } else {
+                levelPreview.style.color = '#6b7280';
+                levelPreview.style.background = 'rgba(107, 114, 128, 0.1)';
+            }
+
+            // Automatically suggest deal value in Baht
+            let suggestedValue = 300000;
+            if (valuePts === 35) suggestedValue = 25000000;
+            else if (valuePts === 25) suggestedValue = 7500000;
+            else if (valuePts === 15) suggestedValue = 3000000;
+            else if (valuePts === 10) suggestedValue = 750000;
+            
+            document.getElementById('form-value').value = suggestedValue;
+        }
+
+        function calculateScoreAndValue(sizePts, valuePts, growthPts, strategicPts) {
+            const score = sizePts + valuePts + growthPts + strategicPts;
+            const level = getLeadLevel(score);
+            return { score, level };
+        }
+
+        // Save Form
+        function saveLeadForm(event) {
+            event.preventDefault();
+
+            const idVal = document.getElementById('form-lead-id').value;
+            const name = document.getElementById('form-name').value.trim();
+            const location = document.getElementById('form-location').value.trim();
+            const region = document.getElementById('form-region').value;
+            const industry = document.getElementById('form-industry').value;
+            const channel = document.getElementById('form-channel').value;
+            const products = document.getElementById('form-products').value.trim();
+            const contactPerson = document.getElementById('form-contact-person').value.trim();
+            const email = document.getElementById('form-email').value.trim();
+            const phone = document.getElementById('form-phone').value.trim();
+            const website = document.getElementById('form-website').value.trim();
+            const crmSynced = document.getElementById('form-crm-synced').checked;
+            
+            const certsRaw = document.getElementById('form-certs').value;
+            const certifications = certsRaw ? certsRaw.split(',').map(c => c.trim()).filter(c => c) : [];
+            const notes = document.getElementById('form-notes').value.trim();
+
+            const sizePts = parseInt(document.getElementById('form-company-size').value) || 10;
+            const valuePts = parseInt(document.getElementById('form-annual-value-pts').value) || 5;
+            const growthPts = parseInt(document.getElementById('form-growth-potential').value) || 10;
+            const strategicPts = parseInt(document.getElementById('form-strategic-importance').value) || 10;
+
+            const calc = calculateScoreAndValue(sizePts, valuePts, growthPts, strategicPts);
+            const scoreVal = calc.score;
+            const levelVal = calc.level;
+            
+            let valueVal = parseInt(document.getElementById('form-value').value);
+            if (isNaN(valueVal)) {
+                if (valuePts === 35) valueVal = 25000000;
+                else if (valuePts === 25) valueVal = 7500000;
+                else if (valuePts === 15) valueVal = 3000000;
+                else if (valuePts === 10) valueVal = 750000;
+                else valueVal = 300000;
+            }
+
+            const newLeadData = {
+                name, location, region, industry, channel, products, contactPerson, 
+                email, phone, website, crmSynced, certifications, notes,
+                companySizePoints: sizePts,
+                annualValuePoints: valuePts,
+                growthPotentialPoints: growthPts,
+                strategicImportancePoints: strategicPts,
+                leadScore: scoreVal,
+                leadLevel: levelVal,
+                leadValue: valueVal
+            };
+
+            if (idVal) {
+                // Update
+                const id = parseInt(idVal);
+                const idx = leads.findIndex(l => l.id === id);
+                if (idx !== -1) {
+                    newLeadData.id = id;
+                    leads[idx] = newLeadData;
+                    showToast("💾 บันทึกการอัปเดตข้อมูล Lead สำเร็จ!");
+                }
+            } else {
+                // Add new
+                const newId = leads.length > 0 ? Math.max(...leads.map(l => l.id)) + 1 : 1;
+                newLeadData.id = newId;
+                leads.push(newLeadData);
+                showToast("✨ เพิ่ม Lead ใหม่เข้าระบบสำเร็จ!");
+            }
+
+            saveDatabase();
+            closeFormModal();
+            handleFilters();
+            updateStats();
+        }
+
+        // Delete Handler
+        function deleteLead(id) {
+            const lead = leads.find(l => l.id === id);
+            if (!lead) return;
+
+            if (confirm(`คุณแน่ใจหรือไม่ที่จะลบรายชื่อบริษัท "${lead.name}" ออกจากคลัง Lead?`)) {
+                leads = leads.filter(l => l.id !== id);
+                saveDatabase();
+                handleFilters();
+                updateStats();
+                showToast("🗑️ ลบข้อมูล Lead เรียบร้อยแล้ว!");
+            }
+        }
+
+        // Excel-Compatible CSV Exporter
+        function exportToCSV() {
+            const headers = [
+                "ชื่อบริษัท (Company Name)", "ประเทศ/ที่ตั้ง (Location)", "ภูมิภาค (Region)", 
+                "กลุ่มอุตสาหกรรม (Industry)", "ช่องทางการขาย (Sales Channel)", "ผลิตภัณฑ์หลัก (Products)", 
+                "ผู้ติดต่อประสานงาน (Contact Person)", "อีเมล (Email)", "เบอร์โทรศัพท์ (Phone)", 
+                "เว็บไซต์ (Website)", "ดึงเข้า CRM แล้ว (CRM Synced)", "คะแนนคุณภาพ (Lead Score)", 
+                "ระดับของ Lead (Lead Level)", "มูลค่า Lead (Lead Value)", "มาตรฐานรับรอง (Certifications)", 
+                "หมายเหตุฝ่ายขาย (Notes)"
+            ];
+            
+            const rows = filteredLeads.map(lead => {
+                const certs = (lead.certifications || []).join(', ');
+                return [
+                    lead.name,
+                    lead.location,
+                    lead.region === 'thailand' ? 'ประเทศไทย' : 'ต่างประเทศ',
+                    getIndustryThaiName(lead.industry),
+                    getChannelThaiName(lead.channel),
+                    lead.products,
+                    lead.contactPerson || '',
+                    lead.email || '',
+                    lead.phone || '',
+                    lead.website || '',
+                    lead.crmSynced ? 'ดึงแล้ว' : 'ยังไม่ได้ดึง',
+                    lead.leadScore || 0,
+                    lead.leadLevel || '',
+                    lead.leadValue || 0,
+                    certs,
+                    lead.notes || ''
+                ];
+            });
+
+            const escapeCSVValue = (val) => {
+                if (val === null || val === undefined) return '""';
+                let stringVal = String(val);
+                stringVal = stringVal.replace(/"/g, '""');
+                return `"${stringVal}"`;
+            };
+
+            const csvContent = [
+                headers.map(escapeCSVValue).join(','),
+                ...rows.map(row => row.map(escapeCSVValue).join(','))
+            ].join('\n');
+
+            const BOM = "\uFEFF";
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "leadwire_leads_repository.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("📥 ดาวน์โหลดข้อมูลสเปรดชีตสำเร็จแล้ว!");
+        }
+
+        // Switch Theme Light/Dark Mode
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            
+            const btnIcon = document.getElementById('theme-icon');
+            
+            if (newTheme === 'dark') {
+                btnIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />`;
+            } else {
+                btnIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />`;
+            }
+
+            if (typeof Chart !== 'undefined' && geoChartInstance && industryChartInstance) {
+                const labelColor = newTheme === 'dark' ? '#94a3b8' : '#64748b';
+                const gridColor = newTheme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+                
+                geoChartInstance.options.plugins.legend.labels.color = labelColor;
+                geoChartInstance.data.datasets[0].borderColor = newTheme === 'dark' ? '#111928' : '#ffffff';
+                geoChartInstance.update();
+
+                industryChartInstance.options.scales.x.ticks.color = labelColor;
+                industryChartInstance.options.scales.x.grid.color = gridColor;
+                industryChartInstance.options.scales.y.ticks.color = labelColor;
+                industryChartInstance.update();
+            }
+        }
+
+    </script>
+</body>
+</html>
