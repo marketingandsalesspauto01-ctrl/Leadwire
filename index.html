@@ -12,6 +12,8 @@
     
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         /* CSS Variables & Theme Definitions */
@@ -2622,13 +2624,74 @@
         let industryChartInstance = null;
         let scoreDistChartInstance = null;
 
+        // ── Supabase Client ──────────────────────────────────────────────────
+        const SUPABASE_URL  = 'https://erktnwukhjqwdyjrsloh.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVya3Rud3VraGpxd2R5anJzbG9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjI3MDAsImV4cCI6MjA5NjczODcwMH0.64VJvZEhIsgFK7kuM4A2uDhNLLAITnQNSMbrbsl-yiw';
+        const supabase = window.supabase
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
+            : null;
+
+        // DB row (snake_case) → JS object (camelCase)
+        function dbToJS(r) {
+            return {
+                id:                       r.id,
+                name:                     r.name,
+                location:                 r.location        || '',
+                region:                   r.region          || 'thailand',
+                industry:                 r.industry        || '',
+                channel:                  r.channel         || '',
+                products:                 r.products        || '',
+                contactPerson:            r.contact_person  || '',
+                email:                    r.email           || '',
+                phone:                    r.phone           || '',
+                website:                  r.website         || '',
+                crmSynced:                r.crm_synced      || false,
+                leadScore:                r.lead_score      || 0,
+                leadLevel:                r.lead_level      || 'C (Standard)',
+                leadValue:                r.lead_value      || 0,
+                companySizePoints:        r.company_size_points         || 10,
+                annualValuePoints:        r.annual_value_points         || 5,
+                growthPotentialPoints:    r.growth_potential_points     || 10,
+                strategicImportancePoints:r.strategic_importance_points || 10,
+                certifications:           Array.isArray(r.certifications) ? r.certifications : [],
+                notes:                    r.notes           || '',
+            };
+        }
+
+        // JS object (camelCase) → DB row (snake_case)
+        function jsToDb(l) {
+            return {
+                name:                       l.name,
+                location:                   l.location,
+                region:                     l.region,
+                industry:                   l.industry,
+                channel:                    l.channel,
+                products:                   l.products,
+                contact_person:             l.contactPerson,
+                email:                      l.email,
+                phone:                      l.phone,
+                website:                    l.website,
+                crm_synced:                 l.crmSynced,
+                lead_score:                 l.leadScore,
+                lead_level:                 l.leadLevel,
+                lead_value:                 l.leadValue,
+                company_size_points:        l.companySizePoints,
+                annual_value_points:        l.annualValuePoints,
+                growth_potential_points:    l.growthPotentialPoints,
+                strategic_importance_points:l.strategicImportancePoints,
+                certifications:             l.certifications || [],
+                notes:                      l.notes,
+            };
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         // Email draft states
         let activeLeadForEmail = null;
         let finalDraftedEmailBody = '';
 
         // Initialize Application
-        window.addEventListener('DOMContentLoaded', () => {
-            loadDatabase();
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadDatabase();
             if (typeof Chart !== 'undefined') {
                 initCharts();
             } else {
@@ -2636,7 +2699,7 @@
                 const charts = document.querySelectorAll('.chart-wrapper');
                 charts.forEach(c => c.closest('.card').style.display = 'none');
             }
-            renderLeads();
+            handleFilters();
             updateStats();
         });
 
@@ -2695,57 +2758,66 @@
         }
 
         // Database logic
-        function loadDatabase() {
-            const stored = localStorage.getItem('leadwire_crm_v2_database');
-            if (stored) {
-                try {
-                    leads = JSON.parse(stored);
-                    
-                    // Migrate data if score/value/level/sub-metrics are missing
-                    let migrated = false;
-                    leads.forEach(l => {
-                        if (l.leadLevel === undefined || l.companySizePoints === undefined) {
-                            const defaultMatch = defaultLeads.find(df => df.id === l.id);
-                            if (defaultMatch) {
-                                l.companySizePoints = defaultMatch.companySizePoints || 10;
-                                l.annualValuePoints = defaultMatch.annualValuePoints || 5;
-                                l.growthPotentialPoints = defaultMatch.growthPotentialPoints || 10;
-                                l.strategicImportancePoints = defaultMatch.strategicImportancePoints || 10;
-                                l.leadScore = defaultMatch.leadScore || 35;
-                                l.leadLevel = defaultMatch.leadLevel || "C (Standard)";
-                                l.leadValue = defaultMatch.leadValue || 300000;
-                            } else {
-                                l.companySizePoints = 10;
-                                l.annualValuePoints = 5;
-                                l.growthPotentialPoints = 10;
-                                l.strategicImportancePoints = 10;
-                                l.leadScore = 35;
-                                l.leadLevel = "C (Standard)";
-                                l.leadValue = 300000;
-                            }
-                            migrated = true;
-                        }
-                    });
-                    if (migrated) saveDatabase();
-                } catch (e) {
+        async function loadDatabase() {
+            if (!supabase) {
+                // Fallback: localStorage
+                _loadFromLocalStorage();
+                return;
+            }
+            try {
+                const { data, error } = await supabase
+                    .from('leads')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    leads = data.map(dbToJS);
+                } else {
+                    // First run — seed default leads into Supabase
                     leads = [...defaultLeads];
+                    const rows = leads.map(jsToDb);
+                    const { error: insertError } = await supabase.from('leads').insert(rows);
+                    if (insertError) console.error('Seed error:', insertError.message);
+                    // Re-fetch to get Supabase-assigned IDs
+                    const { data: seeded } = await supabase.from('leads').select('*').order('id');
+                    if (seeded) leads = seeded.map(dbToJS);
                 }
-            } else {
-                leads = [...defaultLeads];
-                saveDatabase();
+            } catch (e) {
+                console.warn('Supabase load failed, using localStorage:', e.message);
+                _loadFromLocalStorage();
             }
             filteredLeads = [...leads];
         }
 
-        // Save database
+        function _loadFromLocalStorage() {
+            const stored = localStorage.getItem('leadwire_crm_v2_database');
+            if (stored) {
+                try { leads = JSON.parse(stored); } catch { leads = [...defaultLeads]; }
+            } else {
+                leads = [...defaultLeads];
+                localStorage.setItem('leadwire_crm_v2_database', JSON.stringify(leads));
+            }
+        }
+
+        // Keep localStorage in sync as a local cache
         function saveDatabase() {
             localStorage.setItem('leadwire_crm_v2_database', JSON.stringify(leads));
         }
 
         // Reset default data
-        function resetToDefaultData() {
+        async function resetToDefaultData() {
             if (confirm("คุณต้องการรีเซ็ตข้อมูลกลับไปใช้เริ่มต้น 20 บริษัทที่มีคะแนนและมูลค่าคาดการณ์หรือไม่?")) {
-                leads = [...defaultLeads];
+                if (supabase) {
+                    // Clear all then re-seed
+                    await supabase.from('leads').delete().neq('id', 0);
+                    const { data, error } = await supabase.from('leads').insert(defaultLeads.map(jsToDb)).select();
+                    if (!error && data) leads = data.map(dbToJS);
+                    else leads = [...defaultLeads];
+                } else {
+                    leads = [...defaultLeads];
+                }
                 saveDatabase();
                 handleFilters();
                 updateStats();
@@ -3225,6 +3297,10 @@
                     // Completed!
                     lead.crmSynced = true;
                     saveDatabase();
+                    if (supabase) {
+                        supabase.from('leads').update({ crm_synced: true }).eq('id', lead.id)
+                            .then(({ error }) => { if (error) console.error('Sync error:', error.message); });
+                    }
                     handleFilters();
                     updateStats();
                     
@@ -4027,17 +4103,37 @@
                 if (idx !== -1) {
                     newLeadData.id = id;
                     leads[idx] = newLeadData;
+                    saveDatabase();
+                    if (supabase) {
+                        supabase.from('leads').update(jsToDb(newLeadData)).eq('id', id)
+                            .then(({ error }) => { if (error) console.error('Update error:', error.message); });
+                    }
                     showToast("💾 บันทึกการอัปเดตข้อมูล Lead สำเร็จ!");
                 }
             } else {
                 // Add new
-                const newId = leads.length > 0 ? Math.max(...leads.map(l => l.id)) + 1 : 1;
-                newLeadData.id = newId;
-                leads.push(newLeadData);
-                showToast("✨ เพิ่ม Lead ใหม่เข้าระบบสำเร็จ!");
+                if (supabase) {
+                    supabase.from('leads').insert(jsToDb(newLeadData)).select().single()
+                        .then(({ data, error }) => {
+                            if (error) { console.error('Insert error:', error.message); return; }
+                            newLeadData.id = data.id;
+                            leads.push(newLeadData);
+                            saveDatabase();
+                            handleFilters();
+                            updateStats();
+                        });
+                    closeFormModal();
+                    showToast("✨ เพิ่ม Lead ใหม่เข้าระบบสำเร็จ!");
+                    return;
+                } else {
+                    const newId = leads.length > 0 ? Math.max(...leads.map(l => l.id)) + 1 : 1;
+                    newLeadData.id = newId;
+                    leads.push(newLeadData);
+                    saveDatabase();
+                    showToast("✨ เพิ่ม Lead ใหม่เข้าระบบสำเร็จ!");
+                }
             }
 
-            saveDatabase();
             closeFormModal();
             handleFilters();
             updateStats();
@@ -4050,7 +4146,12 @@
 
             if (confirm(`คุณแน่ใจหรือไม่ที่จะลบรายชื่อบริษัท "${lead.name}" ออกจากคลัง Lead?`)) {
                 leads = leads.filter(l => l.id !== id);
+                selectedIds.delete(id);
                 saveDatabase();
+                if (supabase) {
+                    supabase.from('leads').delete().eq('id', id)
+                        .then(({ error }) => { if (error) console.error('Delete error:', error.message); });
+                }
                 handleFilters();
                 updateStats();
                 showToast("🗑️ ลบข้อมูล Lead เรียบร้อยแล้ว!");
